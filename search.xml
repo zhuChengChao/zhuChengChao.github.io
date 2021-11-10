@@ -1,80 +1,215 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Hello World</title>
-    <url>/2021/11/08/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+    <title>Jupyter Notebook配置多个kernel</title>
+    <url>/2019/10/01/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/Jupyter%20Notebook%E9%85%8D%E7%BD%AE%E5%A4%9A%E4%B8%AAkernel/</url>
+    <content><![CDATA[<p>在anaconda下配置了多个环境，而Jupiter Notebook只是安装在<code>base</code>环境下，为了能在Jupiter Notebook中使用不同的环境，进行如下配置。</p>
 <span id="more"></span>
-<h2 id="Quick-Start"><a class="header-anchor" href="#Quick-Start">¶</a>Quick Start</h2>
-<h3 id="Create-a-new-post"><a class="header-anchor" href="#Create-a-new-post">¶</a>Create a new post</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a class="header-anchor" href="#Run-server">¶</a>Run server</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a class="header-anchor" href="#Generate-static-files">¶</a>Generate static files</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a class="header-anchor" href="#Deploy-to-remote-sites">¶</a>Deploy to remote sites</h3>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>测试Blog</title>
-    <url>/2021/11/09/%E6%B5%8B%E8%AF%95Blog/</url>
-    <content><![CDATA[<p>😙</p>
+<h2 id="Jupyter-Notebook配置多个kernel"><a class="header-anchor" href="#Jupyter-Notebook配置多个kernel">¶</a>Jupyter Notebook配置多个kernel</h2>
+<blockquote>
+<p>此次配置在windows10系统下</p>
+</blockquote>
+<h3 id="步骤"><a class="header-anchor" href="#步骤">¶</a>步骤</h3>
+<ol>
+<li>
+<p>打开<code>Anaconda Prompt</code>；</p>
+</li>
+<li>
+<p>查看现有的环境<code>conda info -e</code>，我此时的环境如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># conda environments:</span><br><span class="line">#</span><br><span class="line">base                  *  C:\Software\Anaconda3</span><br><span class="line">tensorflow-cpu           C:\Software\Anaconda3\envs\tensorflow-cpu</span><br><span class="line">tensorflow-gpu           C:\Software\Anaconda3\envs\tensorflow-gpu</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>转到相应的环境<code>conda activate tensorflow-cpu</code></p>
+</li>
+<li>
+<p>在激活的环境中安装<code>ipykernel</code></p>
+<blockquote>
+<p>此处，若我使用<code>conda install ipykernel</code>都安装失败了；</p>
+<p>因此采用pip安装：<code>pip3 install ipykernel -i https://pypi.tuna.tsinghua.edu.cn/simple/</code></p>
+</blockquote>
+</li>
+<li>
+<p>选择环境写入Jupiter Notebook中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python -m ipykernel install --user --name 要添加的环境 --display-name &quot;展示的名字&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p>打开Jupiter Notebook，此时就能进行kernel 的选择。</p>
+</li>
+</ol>
+<h3 id="参考"><a class="header-anchor" href="#参考">¶</a>参考</h3>
+<p><a href="https://blog.csdn.net/tong_he/article/details/78813494">https://blog.csdn.net/tong_he/article/details/78813494</a></p>
+<p><a href="https://blog.csdn.net/u011606714/article/details/77741324">https://blog.csdn.net/u011606714/article/details/77741324</a></p>
 ]]></content>
       <categories>
-        <category>测试分类1</category>
+        <category>环境配置</category>
       </categories>
       <tags>
-        <tag>测试标签1</tag>
-        <tag>测试标签2</tag>
+        <tag>Python</tag>
+        <tag>环境配置</tag>
+        <tag>Anaconda</tag>
       </tags>
   </entry>
   <entry>
-    <title>测试Blog2</title>
-    <url>/2021/11/09/%E6%B5%8B%E8%AF%95Blog2/</url>
-    <content><![CDATA[<p>这是一篇测试博客，仅用于功能测试。</p>
+    <title>树莓派配置使用打印机</title>
+    <url>/2019/10/03/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/%E6%A0%91%E8%8E%93%E6%B4%BE%E6%89%93%E5%8D%B0%E6%9C%BA%E9%85%8D%E7%BD%AE/</url>
+    <content><![CDATA[<p>在树莓派端，通过USB口连接打印机，对打印机进行配置，控制打印机的<strong>打印</strong>和<strong>扫描</strong>功能。</p>
 <span id="more"></span>
-<h1 id="1-一级标题"><a class="header-anchor" href="#1-一级标题">¶</a>1. 一级标题</h1>
-<h2 id="2-二级标题"><a class="header-anchor" href="#2-二级标题">¶</a>2. 二级标题</h2>
-<h3 id="4-三级标题"><a class="header-anchor" href="#4-三级标题">¶</a>4. 三级标题</h3>
-<h4 id="5-四级标题"><a class="header-anchor" href="#5-四级标题">¶</a>5. 四级标题</h4>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p>…</p>
-<p><img src="/2021/11/09/%E6%B5%8B%E8%AF%95Blog2/%E4%B8%80%E5%AF%B8%E7%85%A7-%E4%B8%80%E5%8D%8A%E5%B0%BA%E5%AF%B8.jpg" alt></p>
+<h1 id="树莓派配置使用打印机"><a class="header-anchor" href="#树莓派配置使用打印机">¶</a>树莓派配置使用打印机</h1>
+<blockquote>
+<p>本配置采用了HP的一款打印机</p>
+</blockquote>
+<h2 id="1-打印配置"><a class="header-anchor" href="#1-打印配置">¶</a>1. 打印配置</h2>
+<h3 id="1-1-配置流程"><a class="header-anchor" href="#1-1-配置流程">¶</a>1.1 配置流程</h3>
+<h4 id="1-1-1-驱动确定"><a class="header-anchor" href="#1-1-1-驱动确定">¶</a>1.1.1 驱动确定</h4>
+<p>由于确定使用HP家的打印机，因此进入HP的官网：</p>
+<p><a href="https://developers.hp.com/hp-linux-imaging-and-printing/supported_devices/index">https://developers.hp.com/hp-linux-imaging-and-printing/supported_devices/index</a></p>
+<p>查询打印机是否支持Linux的驱动</p>
+<h4 id="1-1-2-驱动安装"><a class="header-anchor" href="#1-1-2-驱动安装">¶</a>1.1.2 驱动安装</h4>
+<ul>
+<li>进入树莓派控制窗口，运行以下命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo apt-get install hplip</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>最好换成国内的镜像进行下载：</p>
+<p><a href="https://blog.csdn.net/la9998372/article/details/77886806">https://blog.csdn.net/la9998372/article/details/77886806</a></p>
+<p><strong>注</strong>：换了源之后出现了无法自动安装依赖包的情况，需要将<code>stretch </code>更换为<code>buster</code>，例如：<code>deb http://mirrors.tuna.tsinghua.edu.cn/raspbian/raspbian/ stretch main contrib non-free rpi</code>修改为<code>deb http://mirrors.tuna.tsinghua.edu.cn/raspbian/raspbian/ buster main contrib non-free rpi</code></p>
+</blockquote>
+<ul>
+<li>再运行命令，<strong>将pi用户 加入到 lpadmin</strong>：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo usermod -a -G lpadmin pi</span><br></pre></td></tr></table></figure>
+<ul>
+<li>成功之后安装<code>hplip-gui</code>，通过以下命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo apt-get install hplip-gui</span><br></pre></td></tr></table></figure>
+<ul>
+<li>安装成功后进行如下步骤：
+<ul>
+<li>在终端输入<code>hp-setup</code></li>
+<li>在弹出的窗口中选择<code>Universal Serial Bus(USB)</code>—&gt;<code>next</code></li>
+<li>选择打印机，此处我的打印机为<code>HP LaserJet MFP m227-m231</code>选择它—&gt;<code>next</code>
+<ul>
+<li>注：若无打印机，则插拔一下打印机的USB线</li>
+</ul>
+</li>
+<li>在下一界面中，勾选<code>Printer Setup</code>—&gt;<code>Add Printer</code>
+<ul>
+<li><code>Fax Setup</code>为传真机功能，可不勾选</li>
+</ul>
+</li>
+<li>会弹出输入用户名和密码的框，输入即可</li>
+<li>至此打印机已经配置成功了</li>
+</ul>
+</li>
+<li>选择默认的打印机，我是通过<code>菜单栏</code>-&gt;<code>Preference</code>-&gt;<code>HPLIP Toolbox</code>-&gt;<code>Printer Control</code>里选择打印机为默认的打印机<code>Set as Default</code>
+<ul>
+<li>若未设置成功，重启一下再设置即</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-2-使用流程"><a class="header-anchor" href="#1-2-使用流程">¶</a>1.2 使用流程</h3>
+<ul>
+<li>
+<p><code>lsusb</code>：查看连接的USB设备</p>
+</li>
+<li>
+<p><code>CUPS</code>命令：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">lpstat</span><br><span class="line">-a	<span class="comment"># 显示打印机的接受状态。</span></span><br><span class="line">-c	<span class="comment"># 显示打印类。</span></span><br><span class="line">-p	<span class="comment"># 显示打印状态：已启用或已禁用。</span></span><br><span class="line">-s	<span class="comment"># 显示默认的一个或多个打印机和类。等效于 -d、 -c 和  -v。请注意，必须将多个选项隔开，因为可为许多选项指定值。</span></span><br><span class="line">-s	<span class="comment"># 显示打印机及其设备。</span></span><br></pre></td></tr></table></figure>
+</li>
+<li>
+<p><code>lp</code>：<strong>打印命令</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">lp -P 指定打印机(若已经设置了默认打印机，则不需要指定) 文件名</span><br><span class="line"><span class="comment"># eg：</span></span><br><span class="line">lp ./Desktop/test.jpg</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>更高级指令这里不在贴出</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="2-扫描仪配置"><a class="header-anchor" href="#2-扫描仪配置">¶</a>2. 扫描仪配置</h2>
+<h3 id="2-1-安装驱动"><a class="header-anchor" href="#2-1-安装驱动">¶</a>2.1 安装驱动</h3>
+<ul>
+<li>打开终端运行如下命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo apt-get install sane</span><br><span class="line">sudo hp-plugin</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在运行<code>sudo hp-plugin</code>命令时，按照提示输入相关的y/n之类的；</p>
+<p>**注：**若出现安装失败等情况，可去网站自行下载插件：<a href="https://www.openprinting.org/download/printdriver/auxfiles/HP/plugins/">https://www.openprinting.org/download/printdriver/auxfiles/HP/plugins/</a></p>
+<p>ps：</p>
+<p>我安装失败了，出现问题<strong>error: Unable to recieve key from keyserver</strong>，不需要管选择’y’继续安装；之后就是接受许可，完成安装；</p>
+<p>后续：从惠普是否支持打印的驱动网站的表格中，存在<code>Driver Plug-in</code>这么一栏，后续的解释说明中提到：</p>
+<blockquote>
+<p>8 (“Required”) A downloadable driver plug-in is required for printing support. (“Optional”) A downloadable driver plug-in is optional for printing support and may increase the speed, quality, or other aspect of printed output. (“No” or “None”) A driver plug-in is not required nor available. Driver plug-ins are released under a proprietary (non-open) license and are not part of the HPLIP tarball release. For more information, please refer to this KB article</p>
+<p>就是说，若是NO，则这个驱动插件是不需要的</p>
+</blockquote>
+</blockquote>
+<ul>
+<li>查看打印机设备</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo sane-find-scanner</span><br><span class="line"><span class="comment"># 在输出的信息中，我能找到这么一串信息</span></span><br><span class="line"><span class="comment"># found USB scanner (vendor=0x03f0 [HP], product=0x642a [HP LaserJet MFP M227-M231]) at libusb:001:004</span></span><br></pre></td></tr></table></figure>
+<p>使用命令<code>scanimage -L</code>查看扫描仪的具体型号</p>
+<h3 id="2-2-扫描文档"><a class="header-anchor" href="#2-2-扫描文档">¶</a>2.2 扫描文档</h3>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 1.加上设备名</span></span><br><span class="line">scanimage -d 打印机的设备名称(通过上述scanimage -L命令获取的) &gt; 输出的地址和文件名字</span><br><span class="line"><span class="comment"># scanimage -d hpaio:/usb/HP_LaserJet_MFP_M227-M231?serial=VNL3D12026 &gt;./Desktop/test.jpg</span></span><br><span class="line"><span class="comment"># ------------------------------------------------------------#</span></span><br><span class="line"><span class="comment"># 2.可以选择不加设备名</span></span><br><span class="line">scanimage &gt; 路径+文件名</span><br><span class="line"><span class="comment"># eg：scanimage &gt; ./Desktop/scan.jpg</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>通过<code>scanimage --help</code>来获取改命令的帮助，例如设置扫描的大小，格式等参数设置</p>
+</blockquote>
+<h2 id="参考"><a class="header-anchor" href="#参考">¶</a>参考</h2>
+<p><strong>打印：</strong></p>
+<p><a href="https://blog.csdn.net/u012939880/article/details/93748342">https://blog.csdn.net/u012939880/article/details/93748342</a></p>
+<p><a href="https://developers.hp.com/hp-linux-imaging-and-printing/install/install/index">https://developers.hp.com/hp-linux-imaging-and-printing/install/install/index</a></p>
+<p><a href="https://blog.csdn.net/nullpointer2008/article/details/79664253">https://blog.csdn.net/nullpointer2008/article/details/79664253</a></p>
+<p><strong>扫描：</strong></p>
+<p><a href="https://blog.csdn.net/wdkirchhoff/article/details/52536846">https://blog.csdn.net/wdkirchhoff/article/details/52536846</a></p>
+<p><a href="https://blog.csdn.net/wdkirchhoff/article/details/52536846">https://blog.csdn.net/wdkirchhoff/article/details/52536846</a></p>
 ]]></content>
       <categories>
-        <category>测试分类2</category>
+        <category>环境配置</category>
       </categories>
       <tags>
-        <tag>测试标签3</tag>
-        <tag>测试标签4</tag>
+        <tag>环境配置</tag>
+        <tag>Ubuntu</tag>
+        <tag>树莓派</tag>
       </tags>
   </entry>
   <entry>
-    <title>测试Blog3</title>
-    <url>/2021/11/09/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/%E6%B5%8B%E8%AF%95/</url>
-    <content><![CDATA[<p>😙</p>
+    <title>远程服务器使用Tensorboard</title>
+    <url>/2019/10/06/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8tensorboard/</url>
+    <content><![CDATA[<p>由于服务器端是纯命令行模式，且在远端。因此在训练模型时，需要通过相应的配置，才能在本地浏览器使用Tensorboard查看训练情况。</p>
+<span id="more"></span>
+<h2 id="远程服务器使用Tensorboard"><a class="header-anchor" href="#远程服务器使用Tensorboard">¶</a>远程服务器使用Tensorboard</h2>
+<h3 id="配置方式：采用了Xshell隧道"><a class="header-anchor" href="#配置方式：采用了Xshell隧道">¶</a>配置方式：采用了Xshell隧道</h3>
+<h4 id="配置"><a class="header-anchor" href="#配置">¶</a>配置</h4>
+<ul>
+<li>打开Xshell，右击相应的会话，在弹出的对话框中选择<code>属性</code>-&gt;<code>连接</code>-&gt;<code>SSH</code>-&gt;<code>隧道</code>-&gt;<code>添加</code></li>
+<li>在<code>侦听端口</code>和<code>目标端口</code>中填入相同的端口，此处填写了<code>6006</code>;</li>
+<li>如下图所示：</li>
+</ul>
+<p><img src="/2019/10/06/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8tensorboard/%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8tensorboard.PNG" alt="服务器使用tensorboard"></p>
+<blockquote>
+<p>服务器上tensorboard使用的端口是6006</p>
+</blockquote>
+<h4 id="使用"><a class="header-anchor" href="#使用">¶</a>使用</h4>
+<ul>
+<li>
+<p>在服务的命令窗口中使用：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">tensorboard --logdir=./training/model --port=6006</span><br></pre></td></tr></table></figure>
+<p>来打开tensorboard服务</p>
+</li>
+<li>
+<p>在本来的浏览器中输入：<code>localhost:6006</code>/<code>127.0.0.1:6006</code></p>
+</li>
+<li>
+<p>即可通过tensorboard查看目前训练的情况。</p>
+</li>
+</ul>
+<h3 id="参考："><a class="header-anchor" href="#参考：">¶</a>参考：</h3>
+<p><a href="https://blog.csdn.net/a314688122a/article/details/81505082">https://blog.csdn.net/a314688122a/article/details/81505082</a></p>
 ]]></content>
       <categories>
-        <category>测试分类1</category>
+        <category>环境配置</category>
       </categories>
       <tags>
-        <tag>测试标签1</tag>
-        <tag>测试标签2</tag>
+        <tag>环境配置</tag>
+        <tag>深度学习</tag>
+        <tag>TensorFlow</tag>
       </tags>
   </entry>
 </search>

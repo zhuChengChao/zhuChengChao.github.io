@@ -64,4 +64,17 @@
         <tag>测试标签4</tag>
       </tags>
   </entry>
+  <entry>
+    <title>测试Blog3</title>
+    <url>/2021/11/09/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<p>😙</p>
+]]></content>
+      <categories>
+        <category>测试分类1</category>
+      </categories>
+      <tags>
+        <tag>测试标签1</tag>
+        <tag>测试标签2</tag>
+      </tags>
+  </entry>
 </search>

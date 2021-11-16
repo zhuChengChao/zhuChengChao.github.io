@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Mario.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Mario.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="记录一下 MySQL 基础的一些语法，便于查询，该部分内容主要是参考：bilibili 上 黑马程序员 的课程而做的笔记，由于时间有点久了，课程地址忘记了🐕 关于数据库的安装操作，可见博文：安装多个版本的MySQL 这部分主要记录的是 DDL、DML、DCL 相关操作">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL：基础语法-1">
+<meta property="og:url" content="http://example.com/2020/09/01/MySQL/MySQL%EF%BC%9A%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95-1/index.html">
+<meta property="og:site_name" content="贤余超">
+<meta property="og:description" content="记录一下 MySQL 基础的一些语法，便于查询，该部分内容主要是参考：bilibili 上 黑马程序员 的课程而做的笔记，由于时间有点久了，课程地址忘记了🐕 关于数据库的安装操作，可见博文：安装多个版本的MySQL 这部分主要记录的是 DDL、DML、DCL 相关操作">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-09-01T02:24:00.000Z">
+<meta property="article:modified_time" content="2020-09-01T02:24:00.000Z">
+<meta property="article:author" content="ZhuCC">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2020/09/01/MySQL/MySQL%EF%BC%9A%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95-1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MySQL：基础语法-1 | 贤余超</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+	<a target="_blank" rel="noopener" href="https://github.com/zhuChengChao" class="github-corner" aria-label="View source on GitHub">
+	<svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+	<path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+	<path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+	<path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+	</svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">贤余超</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一位底层码农 :-)</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">56</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">129</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/09/01/MySQL/MySQL%EF%BC%9A%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="ZhuCC">
+      <meta itemprop="description" content="不急不躁。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贤余超">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL：基础语法-1
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-01 10:24:00" itemprop="dateCreated datePublished" datetime="2020-09-01T10:24:00+08:00">2020-09-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/01/MySQL/MySQL%EF%BC%9A%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95-1/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/01/MySQL/MySQL%EF%BC%9A%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95-1/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录一下 MySQL 基础的一些语法，便于查询，该部分内容主要是参考：bilibili 上 <strong><a target="_blank" rel="noopener" href="https://space.bilibili.com/37974444">黑马程序员</a></strong> 的课程而做的笔记，由于时间有点久了，课程地址忘记了<span class="emoji" data-emoji="dog2">🐕</span></p>
+<p>关于数据库的安装操作，可见博文：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhuchengchao/p/14288690.html">安装多个版本的MySQL</a></p>
+<p>这部分主要记录的是 DDL、DML、DCL 相关操作</p>
+<span id="more"></span>
+<h1 id="mysql基础语法-1">MySQL：基础语法-1</h1>
+<h2 id="概述">概述</h2>
+<blockquote>
+<p>可有可无的概述，过个形式</p>
+</blockquote>
+<h3 id="dbms">DBMS</h3>
+<p>DBMS (DataBase Management System) / 数据库管理系统：指一种操作和管理数据库的大型软件，用于建立、 使用和维护数据库， 对数据库进行统一管理和控制， 以保证数据库的安全性和完整性。用户通过数据库管理系统访问数据库中表内的数据。</p>
+<h3 id="sql">SQL</h3>
+<p>Structured Query Language 结构化查询语言，有以下分类：</p>
+<ul>
+<li>DDL：Data Definition Language (数据定义语言) 如：建库，建表</li>
+<li>Data Manipulation Language (数据操纵语言)， 如：对表中的记录操作增删改</li>
+<li>Data Query Language (数据查询语言)，如：对表中的查询操作</li>
+<li>Data Control Language (数据控制语言)，如：对用户权限的设置</li>
+</ul>
+<h2 id="数据定义语言ddl">数据定义语言：DDL</h2>
+<h3 id="操作数据库">操作数据库</h3>
+<h4 id="创建数据库">创建数据库</h4>
+<ul>
+<li><p>创建数据库：<code>create database 数据库名;</code></p></li>
+<li><p>判断数据库是否已经存在，不存在则创建数据库：</p>
+<p><code>create database  if not exists 数据库名;</code></p></li>
+<li><p>创建数据库并指定字符集</p>
+<p><code>create database 数据库名 character set 字符集;</code></p></li>
+</ul>
+<h4 id="查看数据库">查看数据库</h4>
+<ul>
+<li><p>查看所有的数据库：<code>show databases;</code></p></li>
+<li><p>查看某个数据库的定义信息：</p>
+<p><code>show create database 数据库名;</code></p></li>
+</ul>
+<h4 id="修改数据库">修改数据库</h4>
+<ul>
+<li><p>修改数据库默认的字符集</p>
+<p><code>alter database 数据库名 default character set 字符集名;</code></p></li>
+</ul>
+<h4 id="删除数据库">删除数据库</h4>
+<ul>
+<li>删除数据库：<code>drop database 数据库名;</code></li>
+</ul>
+<h4 id="使用数据库">使用数据库</h4>
+<ul>
+<li><p>查看正在使用的数据库：<code>select database();</code></p>
+<blockquote>
+<p>使用的一个 MySQL 中的全局函数</p>
+</blockquote></li>
+<li><p>使用/切换数据库：<code>use 数据库名;</code></p></li>
+</ul>
+<h3 id="操作表结构">操作表结构</h3>
+<h4 id="创建表">创建表</h4>
+<ul>
+<li><p>正常创建：</p>
+<p><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> 表名(</span><br><span class="line">	字段<span class="number">1</span>  字段标识<span class="number">1</span>，</span><br><span class="line">    字段<span class="number">2</span>  字段标识<span class="number">2</span>，</span><br><span class="line">    ...</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> student (</span><br><span class="line">    id <span class="type">int</span>,</span><br><span class="line">    name <span class="type">varchar</span>(<span class="number">20</span>),</span><br><span class="line">    birthday <span class="type">date</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+</blockquote></li>
+<li><p>快速创建一个表结构相同的表</p>
+<p><code>create table 新表名 like 旧表名;</code></p></li>
+</ul>
+<h4 id="mysql-常用数据类型">MySQL 常用数据类型</h4>
+<table>
+<thead>
+<tr class="header">
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>int</td>
+<td>整形</td>
+</tr>
+<tr class="even">
+<td>double</td>
+<td>浮点型</td>
+</tr>
+<tr class="odd">
+<td>varchar</td>
+<td>字符串型</td>
+</tr>
+<tr class="even">
+<td>data</td>
+<td>日期型</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>不具体展开，后续会有补充</p>
+</blockquote>
+<h4 id="查找表">查找表</h4>
+<ul>
+<li><p>查看某个数据库中的所有表：<code>show tables;</code></p></li>
+<li><p>查看表结构：<code>desc 表名;</code></p></li>
+<li><p>查看创建表的 SQL 语句：<code>show create table 表名;</code></p></li>
+</ul>
+<h4 id="删除表">删除表</h4>
+<ul>
+<li><p>直接删除表：<code>drop table 表名;</code></p></li>
+<li><p>判断表是否存在，如果存在则删除表：<code>drop table if exists 表名;</code></p>
+<blockquote>
+<p>与直接删除的区别：如果表不存在，不删除，存在则删除</p>
+</blockquote></li>
+</ul>
+<h4 id="修改表结构">修改表结构</h4>
+<ul>
+<li>添加表列 add：<code>alter table 表名 add 列名 字段标识;</code></li>
+<li>修改列类型 modify：<code>alter table 表名 modify 列名 新的字段标识;</code></li>
+<li>修改列名 change ：<code>alter table 表名 change 旧列名 新列名 字段标识;</code></li>
+<li>删除列 drop ：<code>alter table 表名 drop 列名;</code></li>
+<li>修改表名：
+<ul>
+<li><code>rename table 旧表名 to 新表名;</code></li>
+<li><code>alter table 表名 rename to 新表名   -- 在sqllite中支持，上面的语句却不支持</code></li>
+</ul></li>
+<li>修改字符集：<code>alter table 表名 character set 字符集;</code></li>
+</ul>
+<h3 id="数据表的约束">数据表的约束</h3>
+<h4 id="约束种类">约束种类</h4>
+<table>
+<thead>
+<tr class="header">
+<th>约束名</th>
+<th>约束关键字</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>主键</td>
+<td>primary key</td>
+</tr>
+<tr class="even">
+<td>唯一</td>
+<td>unique</td>
+</tr>
+<tr class="odd">
+<td>非空</td>
+<td>not null</td>
+</tr>
+<tr class="even">
+<td>外键</td>
+<td>foreign key</td>
+</tr>
+<tr class="odd">
+<td>检查约束</td>
+<td>check 注： mysql 不支持</td>
+</tr>
+</tbody>
+</table>
+<h4 id="主键约束">主键约束</h4>
+<p><strong>说明</strong>：用来唯一标识数据库中的每一条记录：通常<strong>不用业务字段作为主键</strong>，单独给每张表设计一个 id 的字段，把 id 作为主键。 <strong>主键是给数据库和程序使用的，不是给最终的客户使用的。所以主键有没有含义没有关系，只要不重复，非空就行</strong>。</p>
+<p>主键关键字： primary key</p>
+<p><strong>主键的特点</strong>：</p>
+<ol type="1">
+<li>非空 not null</li>
+<li>唯一</li>
+</ol>
+<p><strong>创建主键</strong></p>
+<ol type="1">
+<li><p>在创建表的时候给字段添加主键</p>
+<p><code>字段名 字段类型 primary key</code></p></li>
+<li><p>在已有表中添加主键</p>
+<p><code>alter table 表名 add primary key(字段名);</code></p></li>
+</ol>
+<p><strong>删除主键</strong></p>
+<p><code>alter table 表名 drop primary key;</code></p>
+<p><strong>主键自增</strong></p>
+<ul>
+<li><p>默认：auto_increment 表示自动增长(字段类型必须是整数类型)</p></li>
+<li><p>修改自增长的默认值起始值：</p>
+<p>默认地 AUTO_INCREMENT 的开始值是 1，如果希望修改起始值,请使用下列 SQL 语法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">create table 表名(</span><br><span class="line">	列名 int primary key auto_increment</span><br><span class="line">) auto_increment=起始值;</span><br></pre></td></tr></table></figure></li>
+<li><p>delete 和 truncate 对自增长的影响</p>
+<ul>
+<li>delete ： 删除所有的记录之后，自增长没有影响<br>
+</li>
+<li>truncate：删除以后，自增长又重新开始。</li>
+</ul></li>
+</ul>
+<h4 id="唯一约束">唯一约束</h4>
+<p>表中某一列不能出现重复的值</p>
+<p>基本格式：<code>字段名 字段类型 unique</code></p>
+<blockquote>
+<p>null 没有数据，不存在重复的问题</p>
+</blockquote>
+<h4 id="非空约束">非空约束</h4>
+<p>某一列不能为 null</p>
+<p>基本语法格式：<code>字段名 字段类型 not null</code></p>
+<p><strong>默认值</strong>：<code>字段名 字段类型 default 默认值</code></p>
+<blockquote>
+<p>如果一个字段设置了非空与唯一约束，该字段与主键的区别?</p>
+<ul>
+<li>主键数在一个表中，只能有一个；不能出现多个主键；主键可以单列，也可以是多列</li>
+<li>自增长只能用在主键上</li>
+</ul>
+</blockquote>
+<h4 id="外键约束">外键约束</h4>
+<p><strong>外键</strong>：在从表中与主表主键对应的那一列</p>
+<ul>
+<li>主表： 一方，用来约束别人的表<br>
+</li>
+<li>从表： 多方，被别人约束的表</li>
+</ul>
+<p><strong>创建约束的语法</strong></p>
+<ul>
+<li><p>新建表时增加外键</p>
+<p><code>[constraint] [外键约束名] foreign key(外键字段名) references 主表名(主键字段名) [on update/delete cascade];</code></p></li>
+<li><p>已有表增加外键</p>
+<p><code>alter table 从表 add [constraint][外键约束名] foreign key(外键字段名) references 主表名(主键字段名);</code></p></li>
+</ul>
+<p><strong>删除外键</strong></p>
+<p><code>alter table 从表 drop foreign key 外键名称;</code></p>
+<p><strong>外键的级联</strong></p>
+<p>在修改和删除主表的主键时，同时更新或删除副表的外键值，称为级联操作</p>
+<table>
+<thead>
+<tr class="header">
+<th>级联操作语法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>on update cascade</td>
+<td>级联更新， 只能是创建表的时候创建级联关系。<br>更新主表中的主键， 从表中的外键 列也自动同步更新</td>
+</tr>
+<tr class="even">
+<td>on delete cascade</td>
+<td>级联删除</td>
+</tr>
+</tbody>
+</table>
+<h2 id="数据操纵语言dml">数据操纵语言：DML</h2>
+<h3 id="插入记录">插入记录</h3>
+<ul>
+<li><p>插入全部字段</p>
+<p><code>insert into 表名 (字段名1, 字段名2, 字段名3,...) values (值1, 值2, 值3, ...);</code></p></li>
+<li><p>不写字段名</p>
+<p><code>insert into 表名 values (值1, 值2, 值3, ...);</code></p></li>
+<li><p>插入部分数据</p>
+<p><code>insert into 表名 (字段名1, 字段名2, 字段名3,...) values (值1, 值2, 值3, ...);</code></p>
+<blockquote>
+<p>有添加数据的字段会使用 NULL</p>
+</blockquote></li>
+</ul>
+<h3 id="蠕虫复制">蠕虫复制</h3>
+<p>将一张已经存在的表中的数据复制到另一张表中</p>
+<p>语法格式：</p>
+<ul>
+<li><p>将表名 2 中的所有的列复制到表名 1 中：</p>
+<p><code>insert into 表名1 select * from 表名2;</code></p></li>
+<li><p>只复制部分列</p>
+<p><code>insert into 表名1(列1, 列2) select 列1, 列2 from 表名2;</code></p></li>
+</ul>
+<h3 id="更新表记录">更新表记录</h3>
+<ul>
+<li>不带条件修改数据：<code>update 表名 set 字段名=值; --修改所有行</code></li>
+<li>带条件修改数据：<code>update 表名 set 字段名=值 where 字段名=值;</code></li>
+</ul>
+<h3 id="删除表记录">删除表记录</h3>
+<ul>
+<li><p>不带条件删除数据：<code>delete from 表名;</code></p></li>
+<li><p>带条件删除数据：<code>delete from 表名 where 字段名=值;</code></p></li>
+<li><p>truncate：truncate 相当于删除表的结构，再创建一张表。</p></li>
+</ul>
+<h2 id="数据控制语言dcl">数据控制语言：DCL</h2>
+<h3 id="创建用户">创建用户</h3>
+<p><code>create user '用户名'@'主机名' identified by '密码';</code></p>
+<ul>
+<li>用户名：将创建的用户名</li>
+<li>主机名：指定该用户在哪个主机上可以登陆，如果是本地用户可用 localhost，如果想让该用户可以从任意远程主机登陆，可以使用<strong>通配符%</strong></li>
+<li>密码：该用户的登陆密码，密码可以为空，如果为空则该用户可以不需要密码登陆服务器</li>
+</ul>
+<h3 id="用户授权">用户授权</h3>
+<p><code>grant 权限1, 权限2, ... on 数据库名.表名 to '用户名'@'主机名';</code></p>
+<ul>
+<li><code>grant...on...to</code>： 授权关键字</li>
+<li>权限：授予用户的权限，如 <code>CREATE</code>、 <code>ALTER</code>、 <code>SELECT</code>、 <code>INSERT</code>、 <code>UPDATE</code> 等。如果要授予所有的权限则使用 <code>ALL</code></li>
+<li>数据库名.表名：用户可以操作哪个数据库的哪些表。如果要授予该用户对所有数据库和表的相应操作权限则可用<code>*</code>表示，如<code>*.*</code></li>
+<li>'用户名'@'主机名'：给哪个用户授权，注：有 2 对单引号</li>
+</ul>
+<h3 id="撤销授权">撤销授权</h3>
+<p><code>revoke 权限1, 权限2, ... on 数据库.表名 from '用户名'@'主机名';</code></p>
+<ul>
+<li><code>revoke ... on ... from</code>：撤销授权的关键字</li>
+</ul>
+<blockquote>
+<p>撤销 user1 用户对 test 数据库所有表的操作的权限：</p>
+<p><code>revoke all on test.* from 'user1'@'localhost';</code></p>
+</blockquote>
+<h3 id="查看权限">查看权限</h3>
+<p><code>show grants for '用户名'@'主机名';</code></p>
+<h3 id="删除用户">删除用户</h3>
+<p><code>drop user '用户名'@'主机名';</code></p>
+<h3 id="修改密码">修改密码</h3>
+<ul>
+<li><p>修改管理员密码：</p>
+<p><code>mysqladmin -uroot -p password 新密码</code></p>
+<blockquote>
+<p>需要在未登陆 MySQL 的情况下操作，新密码不需要加上引号</p>
+</blockquote></li>
+<li><p>修改普通用户密码</p>
+<p><code>set password for'用户名'@'主机名'=password('新密码');</code></p>
+<blockquote>
+<p>需要在登陆 MySQL 的情况下操作，新密码要加单引号</p>
+</blockquote></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+	
+	<div>
+		
+			<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+
+<div>
+    
+       <div style="text-align:center;color:#bfbfbf;font-size:16px;">
+             <span>--- 本文结束 </span>
+             <i class="fa fa-thumbs-o-up"></i>
+             <span> 感谢阅读 ---</span>
+       </div>
+    
+</div>
+		
+	</div>
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"># 数据库</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/28/Java%E9%9B%86%E5%90%88/Java%EF%BC%9ASet%E6%8E%A5%E5%8F%A3/" rel="prev" title="Java：Set接口">
+      <i class="fa fa-chevron-left"></i> Java：Set接口
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/03/MySQL/MySQL%EF%BC%9A%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95-2/" rel="next" title="MySQL：基础语法-2">
+      MySQL：基础语法-2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#mysql%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95-1"><span class="nav-text">MySQL：基础语法-1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dbms"><span class="nav-text">DBMS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql"><span class="nav-text">SQL</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80ddl"><span class="nav-text">数据定义语言：DDL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-text">操作数据库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-text">创建数据库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-text">查看数据库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-text">修改数据库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-text">删除数据库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-text">使用数据库</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="nav-text">操作表结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E8%A1%A8"><span class="nav-text">创建表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mysql-%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="nav-text">MySQL 常用数据类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E6%89%BE%E8%A1%A8"><span class="nav-text">查找表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E8%A1%A8"><span class="nav-text">删除表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="nav-text">修改表结构</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%A1%A8%E7%9A%84%E7%BA%A6%E6%9D%9F"><span class="nav-text">数据表的约束</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BA%A6%E6%9D%9F%E7%A7%8D%E7%B1%BB"><span class="nav-text">约束种类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BB%E9%94%AE%E7%BA%A6%E6%9D%9F"><span class="nav-text">主键约束</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%94%AF%E4%B8%80%E7%BA%A6%E6%9D%9F"><span class="nav-text">唯一约束</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%9E%E7%A9%BA%E7%BA%A6%E6%9D%9F"><span class="nav-text">非空约束</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%96%E9%94%AE%E7%BA%A6%E6%9D%9F"><span class="nav-text">外键约束</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%93%8D%E7%BA%B5%E8%AF%AD%E8%A8%80dml"><span class="nav-text">数据操纵语言：DML</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E8%AE%B0%E5%BD%95"><span class="nav-text">插入记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A0%95%E8%99%AB%E5%A4%8D%E5%88%B6"><span class="nav-text">蠕虫复制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E8%A1%A8%E8%AE%B0%E5%BD%95"><span class="nav-text">更新表记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E8%A1%A8%E8%AE%B0%E5%BD%95"><span class="nav-text">删除表记录</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%8E%A7%E5%88%B6%E8%AF%AD%E8%A8%80dcl"><span class="nav-text">数据控制语言：DCL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7"><span class="nav-text">创建用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E6%8E%88%E6%9D%83"><span class="nav-text">用户授权</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%92%A4%E9%94%80%E6%8E%88%E6%9D%83"><span class="nav-text">撤销授权</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E6%9D%83%E9%99%90"><span class="nav-text">查看权限</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E7%94%A8%E6%88%B7"><span class="nav-text">删除用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81"><span class="nav-text">修改密码</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZhuCC"
+      src="/images/%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">ZhuCC</p>
+  <div class="site-description" itemprop="description">不急不躁。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">56</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+	  
+	  
+        <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+        <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+        <div class="widget-wrap">
+            <div id="myCanvasContainer" class="widget tagcloud">
+                <canvas width="250" height="250" id="resCanvas" style="width=100%">
+                    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anaconda/" rel="tag">Anaconda</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GPU/" rel="tag">GPU</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IO/" rel="tag">IO</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDK/" rel="tag">JDK</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">27</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/K%E8%BF%91%E9%82%BB/" rel="tag">K近邻</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LeetCode/" rel="tag">LeetCode</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pytorch/" rel="tag">Pytorch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TensorFlow/" rel="tag">TensorFlow</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadLocal/" rel="tag">ThreadLocal</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TortoiseGit/" rel="tag">TortoiseGit</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Typora/" rel="tag">Typora</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/" rel="tag">Ubuntu</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nvidia/" rel="tag">nvidia</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/" rel="tag">决策树</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98/" rel="tag">分类问题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98/" rel="tag">刷题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%82%E8%80%83%E6%96%87%E4%BB%B6/" rel="tag">参考文件</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E6%8E%A8%E5%AF%BC/" rel="tag">数学推导</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97/" rel="tag">数据清洗</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" rel="tag">特征选择</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="tag">环境配置</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag">目标检测</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" rel="tag">线性回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%81%9A%E7%B1%BB/" rel="tag">聚类</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E8%B7%AF/" rel="tag">计算机网路</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag">读书笔记</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="tag">贝叶斯</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8/" rel="tag">软件使用</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/" rel="tag">逻辑回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E5%90%88%E7%B1%BB/" rel="tag">集合类</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" rel="tag">集成学习</a><span class="tag-list-count">1</span></li></ul>
+                </canvas>
+            </div>
+        </div>
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZhuCC</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">1.5m</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">23:25</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : '3it0tVBbppFeFBVa8QgB3vxM-gzGzoHsz',
+      appKey     : '9VtnMWSrhAtC1pSRaA4Rivx9',
+      placeholder: "请多多指教~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Mario.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Mario.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="之前学了一波 MySQL 在使用层面的内容，现在则将其进行一步升华，稍稍深入的学习一些 MySQL 的内部实现等进阶知识点，这当然也是跟着视频学习时做的笔记，课程地址：MySQL入门到精通，笔记总共分为5篇，此为 4&#x2F;5，其余地址如下：  MySQL：提高笔记-1 MySQL：提高笔记-2 MySQL：提高笔记-3 MySQL：提高笔记-4 MySQL：提高笔记-5">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL：提高笔记-4">
+<meta property="og:url" content="http://example.com/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/index.html">
+<meta property="og:site_name" content="贤余超">
+<meta property="og:description" content="之前学了一波 MySQL 在使用层面的内容，现在则将其进行一步升华，稍稍深入的学习一些 MySQL 的内部实现等进阶知识点，这当然也是跟着视频学习时做的笔记，课程地址：MySQL入门到精通，笔记总共分为5篇，此为 4&#x2F;5，其余地址如下：  MySQL：提高笔记-1 MySQL：提高笔记-2 MySQL：提高笔记-3 MySQL：提高笔记-4 MySQL：提高笔记-5">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/主从复制.jpg">
+<meta property="og:image" content="http://example.com/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/缓存优化操作流程.png">
+<meta property="og:image" content="http://example.com/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/锁模式的相互兼容性.png">
+<meta property="article:published_time" content="2020-06-21T02:24:00.000Z">
+<meta property="article:modified_time" content="2020-06-21T02:24:00.000Z">
+<meta property="article:author" content="ZhuCC">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/主从复制.jpg">
+
+<link rel="canonical" href="http://example.com/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MySQL：提高笔记-4 | 贤余超</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+	<a target="_blank" rel="noopener" href="https://github.com/zhuChengChao" class="github-corner" aria-label="View source on GitHub">
+	<svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+	<path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+	<path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+	<path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+	</svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">贤余超</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一位底层码农 :-)</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">69</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">13</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">153</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="ZhuCC">
+      <meta itemprop="description" content="不急不躁。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贤余超">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MySQL：提高笔记-4
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-21 10:24:00" itemprop="dateCreated datePublished" datetime="2020-06-21T10:24:00+08:00">2020-06-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>22k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>20 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>之前学了一波 MySQL 在使用层面的内容，现在则将其进行一步升华，稍稍深入的学习一些 MySQL 的内部实现等进阶知识点，这当然也是跟着视频学习时做的笔记，课程地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1zJ411M7TB">MySQL入门到精通</a>，笔记总共分为5篇，此为 <strong>4/5</strong>，其余地址如下：</p>
+<ul>
+<li><a href>MySQL：提高笔记-1</a></li>
+<li><a href>MySQL：提高笔记-2</a></li>
+<li><a href>MySQL：提高笔记-3</a></li>
+<li><a href>MySQL：提高笔记-4</a></li>
+<li><a href>MySQL：提高笔记-5</a></li>
+</ul>
+<span id="more"></span>
+<h1 id="mysql提高笔记-4">MySQL：提高笔记-4</h1>
+<blockquote>
+<p>说明：这是根据 bilibili 上 <strong><a target="_blank" rel="noopener" href="https://space.bilibili.com/37974444">黑马程序员</a></strong> 的课程 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1zJ411M7TB">mysql入门到精通</a> 后做的笔记</p>
+</blockquote>
+<h2 id="应用优化">1. 应用优化</h2>
+<p>前面章节，我们介绍了很多数据库的优化措施。但是在实际生产环境中，由于数据库本身的性能局限，就必须要对前端的应用进行一些优化，来降低数据库的访问压力。</p>
+<h3 id="使用连接池">1.1 使用连接池</h3>
+<p>对于访问数据库来说，建立连接的代价是比较昂贵的，因为我们频繁的创建关闭连接，是比较耗费资源的，我们有必要建立<strong>数据库连接池</strong>，以提高访问的性能。</p>
+<h3 id="减少对mysql的访问">1.2 减少对MySQL的访问</h3>
+<h4 id="避免对数据进行重复检索">1.2.1 避免对数据进行重复检索</h4>
+<p>在编写应用代码时，需要能够理清对数据库的访问逻辑。能够一次连接就获取到结果的，就不用两次连接，这样可以大大减少对数据库无用的重复请求。</p>
+<p>比如 ，需要获取书籍的id 和name字段 ， 则查询如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> id , name <span class="keyword">from</span> tb_book;</span><br></pre></td></tr></table></figure>
+<p>之后，在业务逻辑中有需要获取到书籍状态信息， 则查询如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> id , status <span class="keyword">from</span> tb_book;</span><br></pre></td></tr></table></figure>
+<p>这样，就需要向数据库提交两次请求，数据库就要做两次查询操作。其实完全可以用一条SQL语句得到想要的结果。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> id, name, status <span class="keyword">from</span> tb_book;</span><br></pre></td></tr></table></figure>
+<h4 id="增加-cache-层">1.2.2 增加 cache 层</h4>
+<p>在应用中，我们可以在应用中增加<strong>缓存层</strong>来达到减轻数据库负担的目的。缓存层有很多种，也有很多实现方式，只要能达到降低数据库的负担又能满足应用需求就可以。</p>
+<p>因此可以部分数据从数据库中抽取出来放到应用端以文本方式存储， 或者使用框架(Mybatis, Hibernate)提供的一级缓存/二级缓存，或者使用Redis数据库来缓存数据 。</p>
+<h3 id="负载负载">1.3 负载负载</h3>
+<p>负载均衡是应用中使用非常普遍的一种优化方法，它的机制就是利用某种均衡算法，将固定的负载量分布到不同的服务器上， 以此来降低单台服务器的负载，达到优化的效果。</p>
+<h4 id="利用mysql复制分流查询">1.3.1 利用MySQL复制分流查询</h4>
+<p>通过 MySQL 的主从复制，实现读写分离，使增删改操作走主节点，查询操作走从节点，从而可以降低单台服务器的读写压力。</p>
+<p><img src="/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/主从复制.jpg" alt="主从复制"></p>
+<h4 id="采用分布式数据库架构">1.3.2 采用分布式数据库架构</h4>
+<p>分布式数据库架构适合大数据量、负载高的情况，它有良好的拓展性和高可用性。通过在多台服务器之间分布数据，可以实现在多台服务器之间的负载均衡，提高访问效率。</p>
+<h2 id="mysql中查询缓存优化">2. MySQL中查询缓存优化</h2>
+<h3 id="概述">2.1 概述</h3>
+<p>开启MySQL的查询缓存，当执行<strong>完全相同的SQL语句</strong>的时候，服务器就会直接从缓存中读取结果，当数据被修改，之前的缓存会失效，修改比较频繁的表不适合做查询缓存。</p>
+<h3 id="操作流程">2.2 操作流程</h3>
+<p><img src="/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/缓存优化操作流程.png" alt="缓存优化操作流程"></p>
+<ol type="1">
+<li>客户端发送一条查询给服务器；</li>
+<li>服务器先会检查查询缓存，如果命中了缓存，则立即返回存储在缓存中的结果。否则进入下一阶段；</li>
+<li>服务器端进行SQL解析、预处理，再由优化器生成对应的执行计划；</li>
+<li>MySQL根据优化器生成的执行计划，调用存储引擎的API来执行查询；</li>
+<li>将结果返回给客户端。</li>
+</ol>
+<h3 id="查询缓存配置">2.3 查询缓存配置</h3>
+<ol type="1">
+<li><p>查看当前的MySQL数据库是否支持查询缓存：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &#x27;have_query_cache&#x27;;</span><br><span class="line">+------------------+-------+</span><br><span class="line">| Variable_name    | Value |</span><br><span class="line">+------------------+-------+</span><br><span class="line">| have_query_cache | YES   |</span><br><span class="line">+------------------+-------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p>查看当前MySQL是否开启了查询缓存 ：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &#x27;query_cache_type&#x27;;</span><br><span class="line">+------------------+-------+</span><br><span class="line">| Variable_name    | Value |</span><br><span class="line">+------------------+-------+</span><br><span class="line">| query_cache_type | ON    |</span><br><span class="line">+------------------+-------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p>查看查询缓存的占用大小 ：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;query_cache_size&#x27;</span>;</span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span>    <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+</span></span><br><span class="line"><span class="operator">|</span> query_cache_size <span class="operator">|</span> <span class="number">15728640</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure></li>
+<li><p>查看查询缓存的状态变量：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">   mysql<span class="operator">&gt;</span> <span class="keyword">SHOW</span> STATUS <span class="keyword">LIKE</span> <span class="string">&#x27;Qcache%&#x27;</span>;</span><br><span class="line">   <span class="operator">+</span><span class="comment">-------------------------+----------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name           <span class="operator">|</span> <span class="keyword">Value</span>    <span class="operator">|</span></span><br><span class="line">   <span class="operator">+</span><span class="comment">-------------------------+----------+</span></span><br><span class="line"><span class="operator">|</span> Qcache_free_blocks      <span class="operator">|</span> <span class="number">1</span>        <span class="operator">|</span></span><br><span class="line">   <span class="operator">|</span> Qcache_free_memory      <span class="operator">|</span> <span class="number">15677040</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Qcache_hits             <span class="operator">|</span> <span class="number">8</span>        <span class="operator">|</span></span><br><span class="line">   <span class="operator">|</span> Qcache_inserts          <span class="operator">|</span> <span class="number">51</span>       <span class="operator">|</span></span><br><span class="line">   <span class="operator">|</span> Qcache_lowmem_prunes    <span class="operator">|</span> <span class="number">0</span>        <span class="operator">|</span></span><br><span class="line">   <span class="operator">|</span> Qcache_not_cached       <span class="operator">|</span> <span class="number">93</span>       <span class="operator">|</span></span><br><span class="line">   <span class="operator">|</span> Qcache_queries_in_cache <span class="operator">|</span> <span class="number">33</span>       <span class="operator">|</span></span><br><span class="line">   <span class="operator">|</span> Qcache_total_blocks     <span class="operator">|</span> <span class="number">82</span>       <span class="operator">|</span></span><br><span class="line">   <span class="operator">+</span><span class="comment">-------------------------+----------+</span></span><br><span class="line">   <span class="number">8</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>各个变量的含义如下：</p>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Qcache_free_blocks</td>
+<td>查询缓存中的可用内存块数</td>
+</tr>
+<tr class="even">
+<td>Qcache_free_memory</td>
+<td>查询缓存的可用内存量</td>
+</tr>
+<tr class="odd">
+<td>Qcache_hits</td>
+<td>查询缓存命中数</td>
+</tr>
+<tr class="even">
+<td>Qcache_inserts</td>
+<td>添加到查询缓存的查询数</td>
+</tr>
+<tr class="odd">
+<td>Qcache_lowmen_prunes</td>
+<td>由于内存不足而从查询缓存中删除的查询数</td>
+</tr>
+<tr class="even">
+<td>Qcache_not_cached</td>
+<td>非缓存查询的数量（由于 query_cache_type 设置而无法缓存或未缓存）</td>
+</tr>
+<tr class="odd">
+<td>Qcache_queries_in_cache</td>
+<td>查询缓存中注册的查询数</td>
+</tr>
+<tr class="even">
+<td>Qcache_total_blocks</td>
+<td>查询缓存中的块总数</td>
+</tr>
+</tbody>
+</table></li>
+</ol>
+<h3 id="开启查询缓存">2.4 开启查询缓存</h3>
+<p>MySQL的查询缓存默认是关闭的，需要手动配置参数 query_cache_type ， 来开启查询缓存。query_cache_type 该参数的可取值有三个 ：</p>
+<table>
+<thead>
+<tr class="header">
+<th>值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>OFF 或 0</td>
+<td>查询缓存功能关闭</td>
+</tr>
+<tr class="even">
+<td>ON 或 1</td>
+<td>查询缓存功能打开，SELECT的结果符合缓存条件即会缓存，否则，不予缓存，显式指定 SQL_NO_CACHE，不予缓存</td>
+</tr>
+<tr class="odd">
+<td>DEMAND 或 2</td>
+<td>查询缓存功能按需进行，显式指定 SQL_CACHE 的SELECT语句才会缓存；其它均不予缓存</td>
+</tr>
+</tbody>
+</table>
+<p>在 <code>/usr/my.cnf</code> 配置中，增加以下配置 ：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 开启mysql的查询缓存</span><br><span class="line">query_cache_type=1</span><br></pre></td></tr></table></figure>
+<p>配置完毕之后，重启服务既可生效 ；</p>
+<p>然后就可以在命令行执行 SQL 语句进行验证 ，执行一条比较耗时的SQL语句，然后再多执行几次，查看后面几次的执行时间；获取通过查看查询缓存的缓存命中数，来判定是否走查询缓存。</p>
+<h3 id="查询缓存select选项">2.5 查询缓存SELECT选项</h3>
+<p>可以在SELECT语句中指定两个与查询缓存相关的选项 ：</p>
+<p><code>SQL_CACHE</code> : 如果查询结果是可缓存的，并且 query_cache_type 系统变量的值为 ON 或 DEMAND ，则缓存查询结果 。</p>
+<p><code>SQL_NO_CACHE</code> : 服务器不使用查询缓存。它既不检查查询缓存，也不检查结果是否已缓存，也不缓存查询结果。</p>
+<p>例子：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select SQL_CACHE id, name from customer;</span><br><span class="line">select SQL_NO_CACHE id, name from customer;</span><br></pre></td></tr></table></figure>
+<h3 id="查询缓存失效的情况">2.6 查询缓存失效的情况</h3>
+<ol type="1">
+<li>SQL 语句不一致的情况， 要想命中查询缓存，查询的SQL语句必须一致。</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SQL1 : <span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> tb_item;</span><br><span class="line">SQL2 : <span class="keyword">Select</span> <span class="built_in">count</span>(<span class="operator">*</span>) <span class="keyword">from</span> tb_item;  <span class="comment">-- S大写了</span></span><br></pre></td></tr></table></figure>
+<ol start="2" type="1">
+<li>当查询语句中有一些不确定的时，则不会缓存。如 ： now() , current_date() , curdate() , curtime() , rand() , uuid() , user() , database() 。</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SQL1 : <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> tb_item <span class="keyword">where</span> updatetime <span class="operator">&lt;</span> now() limit <span class="number">1</span>;</span><br><span class="line">SQL2 : <span class="keyword">select</span> <span class="keyword">user</span>();</span><br><span class="line">SQL3 : <span class="keyword">select</span> database();</span><br></pre></td></tr></table></figure>
+<ol start="3" type="1">
+<li>不使用任何表查询语句。</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="string">&#x27;A&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<ol start="4" type="1">
+<li>查询 mysql， information_schema 或 performance_schema 数据库中的表时，不会走查询缓存。</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> information_schema.engines;</span><br></pre></td></tr></table></figure>
+<ol start="5" type="1">
+<li><p>在存储的函数，触发器或事件的主体内执行的查询。</p></li>
+<li><p>如果表更改，则使用该表的所有高速缓存查询都将变为无效并从高速缓存中删除。<br>
+这包括使用<code>MERGE</code>映射到已更改表的表的查询。一个表可以被许多类型的语句，如被改变 INSERT， UPDATE， DELETE， TRUNCATE TABLE， ALTER TABLE， DROP TABLE，或 DROP DATABASE 。</p></li>
+</ol>
+<h2 id="mysql内存管理及优化">3. MySQL内存管理及优化</h2>
+<h3 id="内存优化原则">3.1 内存优化原则</h3>
+<ol type="1">
+<li><p>将尽量多的内存分配给MySQL做缓存，但要给操作系统和其他程序预留足够内存。</p></li>
+<li><p>MyISAM 存储引擎的数据文件读取依赖于操作系统自身的IO缓存，因此，如果有 MyISAM 表，就要预留更多的内存给操作系统做IO缓存。</p></li>
+<li><p>排序区、连接区等缓存是分配给每个数据库会话（session）专用的，其默认值的设置要根据最大连接数合理分配，如果设置太大，不但浪费资源，而且在并发连接较高时会导致物理内存耗尽。</p></li>
+</ol>
+<h3 id="myisam-内存优化">3.2 MyISAM 内存优化</h3>
+<p>MyISAM 存储引擎使用 key_buffer 缓存索引块，加速MyISAM索引的读写速度。对于MyISAM表的数据块，MySQL没有特别的缓存机制，完全依赖于操作系统的IO缓存。</p>
+<h4 id="key_buffer_size">key_buffer_size</h4>
+<p>key_buffer_size 决定 MyISAM 索引块缓存区的大小，直接影响到 MyISAM 表的存取效率。可以在MySQL参数文件中设置key_buffer_size的值，对于一般MyISAM数据库，建议至少将1/4可用内存分配给key_buffer_size。</p>
+<p>在 <code>/usr/my.cnf</code> 中做如下配置：<code>key_buffer_size=512M</code></p>
+<h4 id="read_buffer_size">read_buffer_size</h4>
+<p>如果需要经常顺序扫描 MyISAM 表，可以通过增大 read_buffer_size 的值来改善性能。但需要注意的是 read_buffer_size 是每个session独占的，如果默认值设置太大，就会造成内存浪费。</p>
+<h4 id="read_rnd_buffer_size">read_rnd_buffer_size</h4>
+<p>对于需要做排序的 MyISAM 表的查询，如带有order by子句的sql，适当增加 read_rnd_buffer_size 的值，可以改善此类的sql性能。但需要注意的是read_rnd_buffer_size 是每个session独占的，如果默认值设置太大，就会造成内存浪费。</p>
+<h3 id="innodb-内存优化">3.3 InnoDB 内存优化</h3>
+<p>innodb 用一块内存区做 IO 缓存池，该缓存池不仅用来缓存 innodb 的索引块，而且也用来缓存 innodb 的数据块。</p>
+<h4 id="innodb_buffer_pool_size">innodb_buffer_pool_size</h4>
+<p>该变量决定了 innodb 存储引擎表数据和索引数据的最大缓存区大小。在保证操作系统及其他程序有足够内存可用的情况下，innodb_buffer_pool_size 的值越大，缓存命中率越高，访问InnoDB表需要的磁盘I/O 就越少，性能也就越高。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_buffer_pool_size=512M</span><br></pre></td></tr></table></figure>
+<h4 id="innodb_log_buffer_size">innodb_log_buffer_size</h4>
+<p>决定了innodb重做日志缓存的大小，对于可能产生大量更新记录的大事务，增加innodb_log_buffer_size的大小，可以避免innodb在事务提交前就执行不必要的日志写入磁盘操作。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_log_buffer_size=10M</span><br></pre></td></tr></table></figure>
+<h2 id="mysql并发参数调整">4. MySQL并发参数调整</h2>
+<p>从实现上来说，MySQL Server 是多线程结构，包括后台线程和客户服务线程。多线程可以有效利用服务器资源，提高数据库的并发性能。在MySQL中，控制并发连接和线程的主要参数包括 max_connections、back_log、thread_cache_size、table_open_cahce。</p>
+<h3 id="max_connections">4.1 max_connections</h3>
+<p>采用 max_connections 控制允许连接到MySQL数据库的最大数量，默认值是 151。如果状态变量 connection_errors_max_connections 不为零，并且一直增长，则说明不断有连接请求因数据库连接数已达到允许最大值而失败，这时可以考虑增大max_connections 的值。</p>
+<p>MySQL 最大可支持的连接数，取决于很多因素，包括给定操作系统平台的线程库的质量、内存大小、每个连接的负荷、CPU的处理速度，期望的响应时间等。在Linux 平台下，性能好的服务器，支持 500-1000 个连接不是难事，需要根据服务器性能进行评估设定。</p>
+<h3 id="back_log">4.2 back_log</h3>
+<p>back_log 参数控制MySQL监听TCP端口时设置的积压请求栈大小。如果MySql的连接数达到max_connections时，新来的请求将会被存在堆栈中，以等待某一连接释放资源，该堆栈的数量即back_log，如果等待连接的数量超过back_log，将不被授予连接资源，将会报错。5.6.6 版本之前默认值为 50 ， 之后的版本默认为 <code>50 + (max_connections / 5)</code>， 但最大不超过900。</p>
+<p>如果需要数据库在较短的时间内处理大量连接请求， 可以考虑适当增大back_log 的值。</p>
+<h3 id="table_open_cache">4.3 table_open_cache</h3>
+<p>该参数用来控制所有SQL语句执行线程可打开表缓存的数量， 而在执行SQL语句时，每一个SQL执行线程至少要打开 1 个表缓存。该参数的值应该根据设置的最大连接数 max_connections 以及每个连接执行关联查询中涉及的表的最大数量来设定 ：max_connections x N ；</p>
+<h3 id="thread_cache_size">4.4 thread_cache_size</h3>
+<p>为了加快连接数据库的速度，MySQL 会缓存一定数量的客户服务线程以备重用，通过参数 thread_cache_size 可控制 MySQL 缓存客户服务线程的数量。</p>
+<h3 id="innodb_lock_wait_timeout">4.5 innodb_lock_wait_timeout</h3>
+<p>该参数是用来设置InnoDB 事务等待行锁的时间，默认值是50ms ， 可以根据需要进行动态设置。对于需要快速反馈的业务系统来说，可以将行锁的等待时间调小，以避免事务长时间挂起； 对于后台运行的批量处理程序来说， 可以将行锁的等待时间调大， 以避免发生大的回滚操作。</p>
+<h2 id="mysql锁问题">5. MySQL锁问题</h2>
+<h3 id="锁概述">5.1 锁概述</h3>
+<p>锁是计算机协调多个进程或线程并发访问某一资源的机制（避免争抢）。</p>
+<p>在数据库中，除传统的计算资源（如 CPU、RAM、I/O 等）的争用以外，数据也是一种供许多用户共享的资源。如何保证数据并发访问的一致性、有效性是所有数据库必须解决的一个问题，锁冲突也是影响数据库并发访问性能的一个重要因素。从这个角度来说，锁对数据库而言显得尤其重要，也更加复杂。</p>
+<h3 id="锁分类">5.2 锁分类</h3>
+<p>从对数据操作的<strong>粒度</strong>分 ：</p>
+<ol type="1">
+<li><p>表锁：操作时，会锁定整个表。</p></li>
+<li><p>行锁：操作时，会锁定当前操作行。</p></li>
+</ol>
+<p>从对数据操作的<strong>类型</strong>分：</p>
+<ol type="1">
+<li><p>读锁（共享锁）：针对同一份数据，多个读操作可以同时进行而不会互相影响。</p></li>
+<li><p>写锁（排它锁）：当前操作没有完成之前，它会阻断其他写锁和读锁。</p></li>
+</ol>
+<h4 id="mysql-锁">5.3 MySQL 锁</h4>
+<p>相对其他数据库而言，MySQL 的锁机制比较简单，其最显著的特点是不同的存储引擎支持不同的锁机制。下表中罗列出了各存储引擎对锁的支持情况：<br>
+| 存储引擎 | 表级锁 | 行级锁 | 页面锁 |<br>
+| -------- | ------ | -------- | -------- |<br>
+| MyISAM | 支持 | 不支持 | 不支持 |<br>
+| InnoDB | 支持 | <strong>支持</strong> | 不支持 |<br>
+| MEMORY | 支持 | 不支持 | 不支持 |<br>
+| BDB | 支持 | 不支持 | <strong>支持</strong> |</p>
+<p>MySQL这3种锁的特性可大致归纳如下 ：</p>
+<table>
+<thead>
+<tr class="header">
+<th>锁类型</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>表级锁</td>
+<td>偏向 MyISAM 存储引擎，开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</td>
+</tr>
+<tr class="even">
+<td>行级锁</td>
+<td>偏向 InnoDB 存储引擎，开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</td>
+</tr>
+<tr class="odd">
+<td>页面锁</td>
+<td>开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</td>
+</tr>
+</tbody>
+</table>
+<p>从上述特点可见，很难笼统地说哪种锁更好，只能就具体应用的特点来说哪种锁更合适！仅从锁的角度来说：</p>
+<ul>
+<li>表级锁更适合于以查询为主，只有少量按索引条件更新数据的应用，如 Web 应用；</li>
+<li>而行级锁则更适合于有大量按索引条件并发更新少量不同数据，同时又有并发查询的应用，如一些在线事务处理（OLTP）系统。</li>
+</ul>
+<h3 id="myisam-表锁">5.2 MyISAM 表锁</h3>
+<p>MyISAM 存储引擎只支持表锁，这也是MySQL开始几个版本中唯一支持的锁类型。</p>
+<h4 id="如何加表锁">5.2.1 如何加表锁</h4>
+<p>MyISAM 在执行查询语句（SELECT）前，会自动给涉及的所有表加读锁，在执行更新操作（UPDATE、DELETE、INSERT 等）前，会自动给涉及的表加写锁，这个过程并不需要用户干预，因此，用户一般不需要直接用 LOCK TABLE 命令给 MyISAM 表显式加锁。</p>
+<p>显示加表锁语法：</p>
+<ul>
+<li>加读锁 ： <code>lock table table_name read;</code></li>
+<li>加写锁 ： <code>lock table table_name write；</code></li>
+</ul>
+<h4 id="读锁案例">5.2.2 读锁案例</h4>
+<p>准备环境</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">create database demo_03 default charset=utf8mb4;</span><br><span class="line"></span><br><span class="line">use demo_03;</span><br><span class="line"></span><br><span class="line">CREATE TABLE `tb_book` (</span><br><span class="line">  `id` INT(11) auto_increment,</span><br><span class="line">  `name` VARCHAR(50) DEFAULT NULL,</span><br><span class="line">  `publish_time` DATE DEFAULT NULL,</span><br><span class="line">  `status` CHAR(1) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (`id`)</span><br><span class="line">) ENGINE=MyISAM DEFAULT CHARSET=utf8;  -- 这里用了MyISAM的引擎</span><br><span class="line"></span><br><span class="line">INSERT INTO tb_book (id, name, publish_time, status) VALUES(NULL,&#x27;java编程思想&#x27;,&#x27;2088-08-01&#x27;,&#x27;1&#x27;);</span><br><span class="line">INSERT INTO tb_book (id, name, publish_time, status) VALUES(NULL,&#x27;solr编程思想&#x27;,&#x27;2088-08-08&#x27;,&#x27;0&#x27;);</span><br><span class="line"></span><br><span class="line">CREATE TABLE `tb_user` (</span><br><span class="line">  `id` INT(11) auto_increment,</span><br><span class="line">  `name` VARCHAR(50) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (`id`)</span><br><span class="line">) ENGINE=MyISAM DEFAULT CHARSET=utf8 ;</span><br><span class="line"></span><br><span class="line">INSERT INTO tb_user (id, name) VALUES(NULL,&#x27;令狐冲&#x27;);</span><br><span class="line">INSERT INTO tb_user (id, name) VALUES(NULL,&#x27;田伯光&#x27;);</span><br></pre></td></tr></table></figure>
+<p><strong>客户端1：</strong></p>
+<ol type="1">
+<li>获得tb_book 表的读锁</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lock table tb_book read;</span><br></pre></td></tr></table></figure>
+<ol start="2" type="1">
+<li>执行查询操作</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">select * from tb_book;</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from tb_book;</span><br><span class="line">+----+--------------+--------------+--------+</span><br><span class="line">| id | name         | publish_time | status |</span><br><span class="line">+----+--------------+--------------+--------+</span><br><span class="line">|  1 | java编程思想        | 2088-08-01   | 1 |</span><br><span class="line">|  2 | solr编程思想        | 2088-08-08   | 0 |</span><br><span class="line">+----+--------------+--------------+--------+</span><br><span class="line">2 rows in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+<p>可以正常执行 ， 查询出数据。</p>
+<p><strong>客户端2：</strong></p>
+<ol start="3" type="1">
+<li>执行查询操作</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">select * from tb_book;</span><br><span class="line"></span><br><span class="line">    id  name              publish_time  status  </span><br><span class="line">------  ----------------  ------------  --------</span><br><span class="line">     1  java编程思想          2088-08-01    1       </span><br><span class="line">     2  solr编程思想          2088-08-08    0       </span><br></pre></td></tr></table></figure>
+<p>可以正常执行 ， 查询出数据。</p>
+<p><strong>客户端1：</strong></p>
+<ol start="4" type="1">
+<li>查询未锁定的表</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select name from tb_user;</span><br><span class="line">ERROR 1100 (HY000): Table &#x27;tb_user&#x27; was not locked with LOCK TABLES</span><br></pre></td></tr></table></figure>
+<p><strong>客户端2：</strong></p>
+<ol start="5" type="1">
+<li>查询未锁定的表</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">select name from tb_user;</span><br><span class="line"></span><br><span class="line">name       </span><br><span class="line">-----------</span><br><span class="line">令狐冲  </span><br><span class="line">田伯光  </span><br></pre></td></tr></table></figure>
+<p>可以正常查询出未锁定的表；</p>
+<p><strong>客户端1：</strong></p>
+<ol start="6" type="1">
+<li>执行插入操作</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">insert</span> <span class="keyword">into</span> tb_book <span class="keyword">values</span>(<span class="keyword">null</span>,<span class="string">&#x27;MySQL高级&#x27;</span>,<span class="string">&#x27;2088-01-01&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line">ERROR <span class="number">1099</span> (HY000): <span class="keyword">Table</span> <span class="string">&#x27;tb_book&#x27;</span> was locked <span class="keyword">with</span> a READ lock <span class="keyword">and</span> can<span class="string">&#x27;t be updated</span></span><br><span class="line"><span class="string">-- 执行插入， 直接报错 ， 由于当前tb_book 获得的是 读锁， 不能执行更新操作。</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端 2 ：</strong></p>
+<ol start="7" type="1">
+<li>执行插入操作</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> tb_book <span class="keyword">values</span>(<span class="keyword">null</span>,<span class="string">&#x27;MySQL高级&#x27;</span>,<span class="string">&#x27;2088-01-01&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- ...等待</span></span><br></pre></td></tr></table></figure>
+<p><strong>客户端1：</strong></p>
+<ol start="8" type="1">
+<li>释放锁指令 unlock tables 后 ， 客户端2中的 inesrt 语句 ， 立即执行 ；</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; unlock tables;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h4 id="写锁案例">5.2.3 写锁案例</h4>
+<p><strong>客户端 1:</strong></p>
+<ol type="1">
+<li>获得 tb_book 表的写锁</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lock <span class="keyword">table</span> tb_book write;</span><br></pre></td></tr></table></figure>
+<ol start="2" type="1">
+<li>执行查询操作</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> tb_book;</span><br><span class="line"><span class="operator">+</span><span class="comment">----+--------------+--------------+--------+</span></span><br><span class="line"><span class="operator">|</span> id <span class="operator">|</span> name         <span class="operator">|</span> publish_time <span class="operator">|</span> status <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+--------------+--------------+--------+</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">1</span> <span class="operator">|</span> java编程思想        <span class="operator">|</span> <span class="number">2088</span><span class="number">-08</span><span class="number">-01</span>   <span class="operator">|</span> <span class="number">1</span>  <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">2</span> <span class="operator">|</span> solr编程思想        <span class="operator">|</span> <span class="number">2088</span><span class="number">-08</span><span class="number">-08</span>   <span class="operator">|</span> <span class="number">0</span>  <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">3</span> <span class="operator">|</span> MySQL高级       <span class="operator">|</span> <span class="number">2088</span><span class="number">-01</span><span class="number">-01</span>   <span class="operator">|</span> <span class="number">1</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+--------------+--------------+--------+</span></span><br><span class="line"><span class="number">3</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.01</span> sec)</span><br></pre></td></tr></table></figure>
+<p>查询操作执行成功；</p>
+<ol start="3" type="1">
+<li>执行更新操作</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> update tb_book <span class="keyword">set</span> name <span class="operator">=</span> <span class="string">&#x27;java编程思想（第二版）&#x27;</span> <span class="keyword">where</span> id <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.01</span> sec)</span><br><span class="line"><span class="keyword">Rows</span> matched: <span class="number">1</span>  Changed: <span class="number">1</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>更新操作执行成功 ；</p>
+<p><strong>客户端 2:</strong></p>
+<ol start="4" type="1">
+<li>执行查询操作</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> tb_book;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 一直等待</span></span><br></pre></td></tr></table></figure>
+<p>当在客户端1 中释放锁指令 unlock tables 后 ， 客户端2 中的 select 语句 ， 立即执行 ；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; unlock tables;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="function">rows <span class="title">affected</span> <span class="params">(<span class="number">0.00</span> sec)</span></span></span><br></pre></td></tr></table></figure>
+<h4 id="结论">5.2.4 结论</h4>
+<p>锁模式的相互兼容性如表中所示：</p>
+<p><img src="/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4/锁模式的相互兼容性.png" alt="锁模式的相互兼容性"></p>
+<p>由上表可见：</p>
+<ol type="1">
+<li><p>对 MyISAM 表的读操作，不会阻塞其他用户对同一表的读请求，但会阻塞对同一表的写请求；</p></li>
+<li><p>对 MyISAM 表的写操作，则会阻塞其他用户对同一表的读和写操作；</p></li>
+</ol>
+<p><strong>简而言之，就是读锁会阻塞写，但是不会阻塞读。而写锁，则既会阻塞读，又会阻塞写。</strong></p>
+<p>此外，MyISAM 的读写锁调度是写优先，这也是MyISAM不适合做写为主的表的存储引擎的原因。因为写锁后，其他线程不能做任何操作，大量的更新会使查询很难得到锁，从而造成永远阻塞。</p>
+<h4 id="查看锁的争用情况">5.2.5 查看锁的争用情况</h4>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show open tables;</span><br><span class="line">+--------------------+---------------------------+--------+-------------+</span><br><span class="line">| Database           | Table                     | In_use | Name_locked |</span><br><span class="line">+--------------------+---------------------------+--------+-------------+</span><br><span class="line">| mysql              | time_zone_transition_type |      0 |           0 |</span><br><span class="line">-- ...</span><br><span class="line">| db1                | emp                       |      0 |           0 |</span><br><span class="line">| demo_01            | emp                       |      0 |           0 |</span><br><span class="line">-- ...</span><br><span class="line">+--------------------+---------------------------+--------+-------------+</span><br><span class="line">54 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>In_user : 表当前被查询使用的次数。如果该数为零，则表是打开的，但是当前没有被使用。</p></li>
+<li><p>Name_locked：表名称是否被锁定。名称锁定用于取消表或对表进行重命名等操作。</p></li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> status <span class="keyword">like</span> <span class="string">&#x27;Table_locks%&#x27;</span>;</span><br><span class="line"><span class="operator">+</span><span class="comment">-----------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name         <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-----------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Table_locks_immediate <span class="operator">|</span> <span class="number">290</span>   <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Table_locks_waited    <span class="operator">|</span> <span class="number">1</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-----------------------+-------+</span></span><br><span class="line"><span class="number">2</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>Table_locks_immediate ： 指的是能够立即获得表级锁的次数，每立即获取锁，值加1。</p></li>
+<li><p>Table_locks_waited ： 指的是不能立即获取表级锁而需要等待的次数，每等待一次，该值加1，此值高说明存在着较为严重的表级锁争用情况。</p></li>
+</ul>
+<h3 id="innodb-行锁">5.3 InnoDB 行锁</h3>
+<h4 id="行锁介绍">5.3.1 行锁介绍</h4>
+<p>行锁特点 ：偏向 InnoDB 存储引擎，开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低，当然并发度也最高。</p>
+<p><strong>InnoDB 与 MyISAM 的最大不同有两点：一是支持事务；二是采用了行级锁。</strong></p>
+<h4 id="背景知识">5.3.2 背景知识</h4>
+<p><strong>事务及其ACID属性</strong></p>
+<p>事务是由一组 SQL 语句组成的逻辑处理单元。</p>
+<p>事务具有以下 4个特性，简称为事务ACID属性。</p>
+<table>
+<thead>
+<tr class="header">
+<th>ACID属性</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>原子性（Atomicity）</td>
+<td>事务是一个原子操作单元，其对数据的修改，要么全部成功，要么全部失败。</td>
+</tr>
+<tr class="even">
+<td>一致性（Consistent）</td>
+<td>在事务开始和完成时，数据都必须保持一致状态。</td>
+</tr>
+<tr class="odd">
+<td>隔离性（Isolation）</td>
+<td>数据库系统提供一定的隔离机制，保证事务在不受外部并发操作影响的 “独立” 环境下运行。</td>
+</tr>
+<tr class="even">
+<td>持久性（Durable）</td>
+<td>事务完成之后，对于数据的修改是永久的。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>并发事务处理带来的问题</strong></p>
+<table>
+<colgroup>
+<col style="width: 36%">
+<col style="width: 63%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>问题</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>丢失更新（Lost Update）</td>
+<td>当两个或多个事务选择同一行，最初的事务修改的值，会被后面的事务修改的值覆盖。</td>
+</tr>
+<tr class="even">
+<td>脏读（Dirty Reads）</td>
+<td>当一个事务正在访问数据，并且对数据进行了修改，而这种修改还没有提交到数据库中，这时，另外一个事务也访问这个数据，然后使用了这个数据。</td>
+</tr>
+<tr class="odd">
+<td>不可重复读（Non-Repeatable Reads）</td>
+<td>一个事务在读取某些数据后的某个时间，再次读取以前读过的数据，却发现和以前读出的数据不一致。</td>
+</tr>
+<tr class="even">
+<td>幻读（Phantom Reads）</td>
+<td>一个事务按照相同的查询条件重新读取以前查询过的数据，却发现其他事务插入了满足其查询条件的新数据。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>事务隔离级别</strong></p>
+<p>为了解决上述提到的事务并发问题，数据库提供一定的事务隔离机制来解决这个问题。数据库的事务隔离越严格，并发副作用越小，但付出的代价也就越大，因为事务隔离实质上就是使用事务在一定程度上“串行化” 进行，这显然与“并发” 是矛盾的。</p>
+<p>数据库的隔离级别有4个，由低到高依次为Read uncommitted、Read committed、Repeatable read、Serializable，这四个级别可以逐个解决脏写、脏读、不可重复读、幻读这几类问题。</p>
+<table>
+<thead>
+<tr class="header">
+<th>隔离级别</th>
+<th>丢失更新</th>
+<th>脏读</th>
+<th>不可重复读</th>
+<th>幻读</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Read uncommitted</td>
+<td>×</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+</tr>
+<tr class="even">
+<td>Read committed</td>
+<td>×</td>
+<td>×</td>
+<td>√</td>
+<td>√</td>
+</tr>
+<tr class="odd">
+<td>Repeatable read（MySQL默认）</td>
+<td>×</td>
+<td>×</td>
+<td>×</td>
+<td>√</td>
+</tr>
+<tr class="even">
+<td>Serializable</td>
+<td>×</td>
+<td>×</td>
+<td>×</td>
+<td>×</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>备注 ： √ 代表可能出现 ， × 代表不会出现 。</p>
+</blockquote>
+<p>MySQL 的数据库的默认隔离级别为 Repeatable read ， 查看方式：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> <span class="string">&#x27;tx_isolation&#x27;</span>;</span><br><span class="line"><span class="operator">+</span><span class="comment">---------------+-----------------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name <span class="operator">|</span> <span class="keyword">Value</span>           <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">---------------+-----------------+</span></span><br><span class="line"><span class="operator">|</span> tx_isolation  <span class="operator">|</span> REPEATABLE<span class="operator">-</span>READ <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">---------------+-----------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<h4 id="innodb-的行锁模式">5.3.3 InnoDB 的行锁模式</h4>
+<p>InnoDB 实现了以下两种类型的行锁。</p>
+<ul>
+<li><strong>共享锁（S）</strong>：又称为读锁，简称S锁，共享锁就是多个事务对于同一数据可以共享一把锁，都能访问到数据，但是<strong>只能读不能修改</strong>。</li>
+<li><strong>排他锁（X）</strong>：又称为写锁，简称X锁，排他锁就是不能与其他锁并存，如一个事务获取了一个数据行的排他锁，其他事务就不能再获取该行的其他锁，包括共享锁和排他锁，但是获取排他锁的事务是可以对数据就行读取和修改。</li>
+</ul>
+<p>对于UPDATE、DELETE和INSERT语句，InnoDB会<strong>自动</strong>给涉及数据集加排他锁（X)；</p>
+<p>对于普通SELECT语句，InnoDB不会加任何锁；</p>
+<p>可以通过以下语句显示给记录集加共享锁或排他锁 。</p>
+<ul>
+<li>共享锁（S）：<code>SELECT * FROM table_name WHERE ... LOCK IN SHARE MODE</code></li>
+<li>排他锁（X) ：<code>SELECT * FROM table_name WHERE ... FOR UPDATE</code></li>
+</ul>
+<h4 id="案例准备工作">5.3.4 案例准备工作</h4>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test_innodb_lock(</span><br><span class="line">	id <span class="type">int</span>(<span class="number">11</span>),</span><br><span class="line">	name <span class="type">varchar</span>(<span class="number">16</span>),</span><br><span class="line">	sex <span class="type">varchar</span>(<span class="number">1</span>)</span><br><span class="line">)engine <span class="operator">=</span> innodb <span class="keyword">default</span> charset<span class="operator">=</span>utf8;</span><br><span class="line"></span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">1</span>,<span class="string">&#x27;100&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">3</span>,<span class="string">&#x27;3&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">4</span>,<span class="string">&#x27;400&#x27;</span>,<span class="string">&#x27;0&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">5</span>,<span class="string">&#x27;500&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">6</span>,<span class="string">&#x27;600&#x27;</span>,<span class="string">&#x27;0&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">7</span>,<span class="string">&#x27;700&#x27;</span>,<span class="string">&#x27;0&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">8</span>,<span class="string">&#x27;800&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">9</span>,<span class="string">&#x27;900&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test_innodb_lock <span class="keyword">values</span>(<span class="number">1</span>,<span class="string">&#x27;200&#x27;</span>,<span class="string">&#x27;0&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> index idx_test_innodb_lock_id <span class="keyword">on</span> test_innodb_lock(id);</span><br><span class="line"><span class="keyword">create</span> index idx_test_innodb_lock_name <span class="keyword">on</span> test_innodb_lock(name);</span><br></pre></td></tr></table></figure>
+<h4 id="行锁基本演示">5.3.5 行锁基本演示</h4>
+<ol type="1">
+<li><p>关闭自动提交功能<code>set autocommit=0;</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1</span><br><span class="line">mysql&gt; set autocommit=0;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2</span><br><span class="line">mysql&gt; set autocommit=0;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p>查询表</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1：可以正常的查询出全部的数据</span><br><span class="line">mysql&gt; select * from test_innodb_lock;</span><br><span class="line">+------+------+------+</span><br><span class="line">| id   | name | sex  |</span><br><span class="line">+------+------+------+</span><br><span class="line">|    1 | 100  | 1    |</span><br><span class="line">|    3 | 3    | 1    |</span><br><span class="line">|    4 | 400  | 0    |</span><br><span class="line">|    5 | 500  | 1    |</span><br><span class="line">|    6 | 600  | 0    |</span><br><span class="line">|    7 | 700  | 0    |</span><br><span class="line">|    8 | 800  | 1    |</span><br><span class="line">|    9 | 900  | 1    |</span><br><span class="line">|    1 | 200  | 0    |</span><br><span class="line">+------+------+------+</span><br><span class="line">9 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2：可以正常的查询出全部的数据</span><br><span class="line">mysql&gt; select * from test_innodb_lock;</span><br><span class="line">+------+------+------+</span><br><span class="line">| id   | name | sex  |</span><br><span class="line">+------+------+------+</span><br><span class="line">|    1 | 100  | 1    |</span><br><span class="line">|    3 | 3    | 1    |</span><br><span class="line">|    4 | 400  | 0    |</span><br><span class="line">|    5 | 500  | 1    |</span><br><span class="line">|    6 | 600  | 0    |</span><br><span class="line">|    7 | 700  | 0    |</span><br><span class="line">|    8 | 800  | 1    |</span><br><span class="line">|    9 | 900  | 1    |</span><br><span class="line">|    1 | 200  | 0    |</span><br><span class="line">+------+------+------+</span><br><span class="line">9 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p>查询 id 为3的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1：</span><br><span class="line">mysql&gt; select * from test_innodb_lock where id=3;</span><br><span class="line">+------+------+------+</span><br><span class="line">| id   | name | sex  |</span><br><span class="line">+------+------+------+</span><br><span class="line">|    3 | 3    | 1    |</span><br><span class="line">+------+------+------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2:</span><br><span class="line">mysql&gt; select * from test_innodb_lock where id=3;</span><br><span class="line">+------+------+------+</span><br><span class="line">| id   | name | sex  |</span><br><span class="line">+------+------+------+</span><br><span class="line">|    3 | 3    | 1    |</span><br><span class="line">+------+------+------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p>更新id为3的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1：更新id为3的数据，但是不提交</span><br><span class="line">mysql&gt; update test_innodb_lock set name=&quot;A1&quot; where id=3;</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line">Rows matched: 1  Changed: 1  Warnings: 0</span><br><span class="line"></span><br><span class="line">-- Session-2:更新id为3 的数据，这时就出于等待状态！！！</span><br><span class="line">mysql&gt; update test_innodb_lock set name=&quot;A2&quot; where id=3;</span><br><span class="line">-- .... 等待</span><br></pre></td></tr></table></figure></li>
+<li><p>Session-1 提交事物，Session-2 解除等待，更新正常进行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1：提交事物</span><br><span class="line">mysql&gt; commit;</span><br><span class="line">Query OK, 0 rows affected (0.04 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2: 立马解除等待，更新正常进行</span><br><span class="line">mysql&gt; update test_innodb_lock set name=&quot;A2&quot; where id=3;</span><br><span class="line">Query OK, 1 row affected (48.70 sec)</span><br><span class="line">Rows matched: 1  Changed: 1  Warnings: 0</span><br></pre></td></tr></table></figure></li>
+<li><p>以上， 操作的都是同一行的数据，接下来，演示不同行的数据 ：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1：更新id为3数据，正常的获取到行锁 </span><br><span class="line">mysql&gt; set autocommit=0;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; update test_innodb_lock set name=&quot;D1&quot; where id=3;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line">Rows matched: 1  Changed: 0  Warnings: 0</span><br><span class="line"></span><br><span class="line">-- Session-2:由于与Session-1 操作不是同一行，获取当前行锁，执行更新</span><br><span class="line">mysql&gt; set autocommit=0;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; update test_innodb_lock set name=&quot;C1&quot; where id=5;</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line">Rows matched: 1  Changed: 1  Warnings: 0</span><br><span class="line"></span><br><span class="line">-- Session-1：提交事物</span><br><span class="line">mysql&gt; commit;</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2：提交事物</span><br><span class="line">mysql&gt; commit;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="无索引行锁升级为表锁">5.3.6 无索引行锁升级为表锁</h4>
+<p>如果不通过索引条件检索数据，那么InnoDB将对表中的所有记录加锁，实际效果跟表锁一样。</p>
+<p>查看当前表的索引 ： <code>show index from test_innodb_lock;</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">      Table             Non_unique  Key_name                   Seq_in_index  </span><br><span class="line">----------------  ----------  -------------------------  ------------  </span><br><span class="line">test_innodb_lock           1  idx_test_innodb_lock_id               1  </span><br><span class="line">test_innodb_lock           1  idx_test_innodb_lock_name             1  </span><br><span class="line"></span><br><span class="line">Column_name  Collation  Cardinality  Sub_part  </span><br><span class="line">-----------  ---------  -----------  --------  </span><br><span class="line">id           A                    9    (NULL)  </span><br><span class="line">name         A                    9    (NULL)  </span><br><span class="line"></span><br><span class="line">Packed  Null    Index_type  Comment  Index_comment  </span><br><span class="line">------  ------  ----------  -------  ---------------</span><br><span class="line">(NULL)  YES     BTREE                               </span><br><span class="line">(NULL)  YES     BTREE                                </span><br></pre></td></tr></table></figure>
+<p><strong>示例：</strong></p>
+<ol type="1">
+<li><p>关闭自动提交功能<code>set autocommit=0;</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1</span><br><span class="line">mysql&gt; set autocommit=0;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2</span><br><span class="line">mysql&gt; set autocommit=0;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p>执行更新语句</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1</span><br><span class="line">mysql&gt; update test_innodb_lock set sex=&quot;2&quot; where name=400;</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line">Rows matched: 1  Changed: 1  Warnings: 0</span><br><span class="line"></span><br><span class="line">-- Session-2</span><br><span class="line">mysql&gt; update test_innodb_lock set sex=&quot;2&quot; where id=9;</span><br><span class="line">-- 等待，对比上面的程序：无索引行锁升级为表锁</span><br></pre></td></tr></table></figure></li>
+<li><p>提交事物</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1</span><br><span class="line">mysql&gt; commit;</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2：解除阻塞，执行更新成功</span><br><span class="line">mysql&gt; update test_innodb_lock set sex=&quot;2&quot; where id=9;</span><br><span class="line">Query OK, 1 row affected (31.82 sec)</span><br><span class="line">Rows matched: 1  Changed: 1  Warnings: 0</span><br><span class="line">mysql&gt; commit;  -- 提交事物</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>由于执行更新时，name 字段本来为 varchar 类型， 我们是作为数组类型使用，<strong>存在类型转换，索引失效，最终行锁变为表锁</strong>；</p>
+<h4 id="间隙锁危害">5.3.7 间隙锁危害</h4>
+<p>当我们用范围条件，而不是使用相等条件检索数据，并请求共享或排他锁时，InnoDB会给符合条件的已有数据进行加锁； <strong>对于键值在条件范围内但并不存在的记录，叫做 &quot;间隙（GAP）&quot;</strong> ， InnoDB也会对这个 &quot;间隙&quot; 加锁，这种锁机制就是所谓的间隙锁（Next-Key锁） 。</p>
+<p><strong>示例 ：</strong></p>
+<ol type="1">
+<li><p>关闭自动提交功能<code>set autocommit=0;</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1</span><br><span class="line">mysql&gt; set autocommit=0;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2</span><br><span class="line">mysql&gt; set autocommit=0;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p>根据id范围更新数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1：根据id范围更新数据</span><br><span class="line">mysql&gt; update test_innodb_lock set name=&quot;8888&quot; where id&lt;4;</span><br><span class="line">Query OK, 3 rows affected (0.00 sec)</span><br><span class="line">Rows matched: 3  Changed: 3  Warnings: 0</span><br><span class="line"></span><br><span class="line">-- Session-2：插入id为2的记录， 处于阻塞状态</span><br><span class="line">insert into test_innodb_lock values(2, &#x27;1001&#x27;, &#x27;1&#x27;);</span><br><span class="line">-- 等待，对比上面的程序：无索引行锁升级为表锁</span><br></pre></td></tr></table></figure></li>
+<li><p>提交事物</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">-- Session-1</span><br><span class="line">mysql&gt; commit;</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">-- Session-2：解除阻塞，执行更新成功</span><br><span class="line">mysql&gt; insert into test_innodb_lock values(2, &#x27;1001&#x27;, &#x27;1&#x27;);</span><br><span class="line">Query OK, 1 row affected (13.21 sec)</span><br><span class="line">Rows matched: 1  Changed: 1  Warnings: 0</span><br><span class="line">mysql&gt; commit;  -- 提交事物</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="innodb-行锁争用情况">5.3.8 InnoDB 行锁争用情况</h4>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show status like &#x27;innodb_row_lock%&#x27;;</span><br><span class="line">+-------------------------------+--------+</span><br><span class="line">| Variable_name                 | Value  |</span><br><span class="line">+-------------------------------+--------+</span><br><span class="line">| Innodb_row_lock_current_waits | 0      |</span><br><span class="line">| Innodb_row_lock_time          | 213921 |</span><br><span class="line">| Innodb_row_lock_time_avg      | 26740  |</span><br><span class="line">| Innodb_row_lock_time_max      | 51596  |</span><br><span class="line">| Innodb_row_lock_waits         | 8      |</span><br><span class="line">+-------------------------------+--------+</span><br><span class="line">5 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>Innodb_row_lock_current_waits: 当前正在等待锁定的数量</p></li>
+<li><p>Innodb_row_lock_time: 从系统启动到现在锁定总时间长度</p></li>
+<li><p>Innodb_row_lock_time_avg:每次等待所花平均时长</p></li>
+<li><p>Innodb_row_lock_time_max:从系统启动到现在等待最长的一次所花的时间</p></li>
+<li><p>Innodb_row_lock_waits: 系统启动后到现在总共等待的次数</p></li>
+</ul>
+<p>当等待的次数很高，而且每次等待的时长也不小的时候，我们就需要分析系统中为什么会有如此多的等待，然后根据分析结果着手制定优化计划。</p>
+<h4 id="总结">5.3.9 总结</h4>
+<p>InnoDB存储引擎由于实现了行级锁定，虽然在锁定机制的实现方面带来了性能损耗可能比表锁会更高一些，但是在整体并发处理能力方面要强于MyISAM的表锁的。</p>
+<p>当系统并发量较高的时候，InnoDB的整体性能和MyISAM相比就会有比较明显的优势。</p>
+<p>但是，InnoDB的行级锁同样也有其脆弱的一面，当我们使用不当的时候，可能会让InnoDB的整体性能表现不仅不能比MyISAM高，甚至可能会更差。</p>
+<p><strong>优化建议：</strong></p>
+<ul>
+<li>尽可能让所有数据检索都能通过索引来完成，<strong>避免无索引行锁升级为表锁</strong>。</li>
+<li>合理设计索引，尽量缩小锁的范围</li>
+<li>尽可能减少索引条件，及索引范围，避免间隙锁</li>
+<li>尽量控制事务大小，减少锁定资源量和时间长度</li>
+<li>尽可使用低级别事务隔离（但是需要业务层面满足需求）</li>
+</ul>
+<h2 id="常用sql技巧">6. 常用SQL技巧</h2>
+<h3 id="sql执行顺序">6.1 SQL执行顺序☆☆☆</h3>
+<p><strong>编写顺序</strong>☆☆☆</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span></span><br><span class="line">	<span class="operator">&lt;</span><span class="keyword">select</span> list<span class="operator">&gt;</span></span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">	<span class="operator">&lt;</span>left_table<span class="operator">&gt;</span> <span class="operator">&lt;</span>join_type<span class="operator">&gt;</span></span><br><span class="line"><span class="keyword">JOIN</span></span><br><span class="line">	<span class="operator">&lt;</span>right_table<span class="operator">&gt;</span> <span class="keyword">ON</span> <span class="operator">&lt;</span>join_condition<span class="operator">&gt;</span></span><br><span class="line"><span class="keyword">WHERE</span></span><br><span class="line">	<span class="operator">&lt;</span>where_condition<span class="operator">&gt;</span></span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">	<span class="operator">&lt;</span>group_by_list<span class="operator">&gt;</span></span><br><span class="line"><span class="keyword">HAVING</span></span><br><span class="line">	<span class="operator">&lt;</span>having_condition<span class="operator">&gt;</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span></span><br><span class="line">	<span class="operator">&lt;</span>order_by_condition<span class="operator">&gt;</span></span><br><span class="line">LIMIT</span><br><span class="line">	<span class="operator">&lt;</span>limit_params<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>执行顺序</strong>☆☆☆</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span>	<span class="operator">&lt;</span>left_table<span class="operator">&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ON</span> 		<span class="operator">&lt;</span>join_condition<span class="operator">&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>join_type<span class="operator">&gt;</span>		<span class="keyword">JOIN</span>	<span class="operator">&lt;</span>right_table<span class="operator">&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">WHERE</span>		<span class="operator">&lt;</span>where_condition<span class="operator">&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> 	<span class="operator">&lt;</span>group_by_list<span class="operator">&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">HAVING</span>		<span class="operator">&lt;</span>having_condition<span class="operator">&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span>		<span class="operator">&lt;</span><span class="keyword">select</span> list<span class="operator">&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span>	<span class="operator">&lt;</span>order_by_condition<span class="operator">&gt;</span></span><br><span class="line"></span><br><span class="line">LIMIT		<span class="operator">&lt;</span>limit_params<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="正则表达式使用">6.2 正则表达式使用</h3>
+<p>正则表达式（Regular Expression）是指一个用来描述或者匹配一系列符合某个句法规则的字符串的单个字符串。</p>
+<table>
+<thead>
+<tr class="header">
+<th>符号</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>^</td>
+<td>在字符串开始处进行匹配</td>
+</tr>
+<tr class="even">
+<td>$</td>
+<td>在字符串末尾处进行匹配</td>
+</tr>
+<tr class="odd">
+<td>.</td>
+<td>匹配任意单个字符, 包括换行符</td>
+</tr>
+<tr class="even">
+<td>[...]</td>
+<td>匹配出括号内的任意字符</td>
+</tr>
+<tr class="odd">
+<td>[^...]</td>
+<td>匹配不出括号内的任意字符</td>
+</tr>
+<tr class="even">
+<td>a*</td>
+<td>匹配零个或者多个a(包括空串)</td>
+</tr>
+<tr class="odd">
+<td>a+</td>
+<td>匹配一个或者多个a(不包括空串)</td>
+</tr>
+<tr class="even">
+<td>a?</td>
+<td>匹配零个或者一个a</td>
+</tr>
+<tr class="odd">
+<td>a1| a2</td>
+<td>匹配a1或a2</td>
+</tr>
+<tr class="even">
+<td>a(m)</td>
+<td>匹配m个a</td>
+</tr>
+<tr class="odd">
+<td>a(m,)</td>
+<td>至少匹配m个a</td>
+</tr>
+<tr class="even">
+<td>a(m,n)</td>
+<td>匹配m个a 到 n个a</td>
+</tr>
+<tr class="odd">
+<td>a(,n)</td>
+<td>匹配0到n个a</td>
+</tr>
+<tr class="even">
+<td>(...)</td>
+<td>将模式元素组成单一元素</td>
+</tr>
+</tbody>
+</table>
+<p><strong>案例：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 表数据：</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> country;</span><br><span class="line">country_id  country_name  </span><br><span class="line"><span class="comment">----------  --------------</span></span><br><span class="line">         <span class="number">1</span>  China         </span><br><span class="line">         <span class="number">2</span>  America       </span><br><span class="line">         <span class="number">3</span>  Japan         </span><br><span class="line">         <span class="number">4</span>  UK            </span><br><span class="line">         </span><br><span class="line"><span class="comment">-- 匹配country_name以C开头的</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> country <span class="keyword">WHERE</span> country_name REGEXP <span class="string">&#x27;^C&#x27;</span>;</span><br><span class="line"><span class="comment">-- 输出</span></span><br><span class="line">country_id  country_name  </span><br><span class="line"><span class="comment">----------  --------------</span></span><br><span class="line">         <span class="number">1</span>  China         </span><br><span class="line"></span><br><span class="line"><span class="comment">-- 匹配country_name以a结尾的</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> country <span class="keyword">WHERE</span> country_name REGEXP <span class="string">&#x27;a$&#x27;</span>;  </span><br><span class="line"><span class="comment">-- 输出</span></span><br><span class="line">country_id  country_name  </span><br><span class="line"><span class="comment">----------  --------------</span></span><br><span class="line">         <span class="number">1</span>  China         </span><br><span class="line">         <span class="number">2</span>  America       </span><br><span class="line"></span><br><span class="line"><span class="comment">-- 匹配country_name中有i/a字符的</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> country <span class="keyword">WHERE</span> country_name REGEXP <span class="string">&#x27;[ia]&#x27;</span>;  </span><br><span class="line"><span class="comment">-- 输出</span></span><br><span class="line">country_id  country_name  </span><br><span class="line"><span class="comment">----------  --------------</span></span><br><span class="line">         <span class="number">1</span>  China         </span><br><span class="line">         <span class="number">2</span>  America       </span><br><span class="line">         <span class="number">3</span>  Japan         </span><br></pre></td></tr></table></figure>
+<h3 id="mysql-常用函数">6.3 MySQL 常用函数</h3>
+<h4 id="数字函数">6.3.1 数字函数</h4>
+<table>
+<thead>
+<tr class="header">
+<th>函数名称</th>
+<th>作 用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ABS</td>
+<td>求绝对值</td>
+</tr>
+<tr class="even">
+<td>SQRT</td>
+<td>求二次方根</td>
+</tr>
+<tr class="odd">
+<td>MOD</td>
+<td>求余数</td>
+</tr>
+<tr class="even">
+<td>CEIL 和 CEILING</td>
+<td>两个函数功能相同，都是返回不小于参数的最小整数，即向上取整</td>
+</tr>
+<tr class="odd">
+<td>FLOOR</td>
+<td>向下取整，返回值转化为一个 bigint</td>
+</tr>
+<tr class="even">
+<td>RAND</td>
+<td>生成一个0~1之间的随机数，传入整数参数是，用来产生重复序列</td>
+</tr>
+<tr class="odd">
+<td>ROUND</td>
+<td>对所传参数进行四舍五入</td>
+</tr>
+<tr class="even">
+<td>SIGN</td>
+<td>返回参数的符号</td>
+</tr>
+<tr class="odd">
+<td>POW 和 POWER</td>
+<td>两个函数的功能相同，都是所传参数的次方的结果值</td>
+</tr>
+<tr class="even">
+<td>SIN</td>
+<td>求正弦值</td>
+</tr>
+<tr class="odd">
+<td>ASIN</td>
+<td>求反正弦值，与函数 SIN 互为反函数</td>
+</tr>
+<tr class="even">
+<td>COS</td>
+<td>求余弦值</td>
+</tr>
+<tr class="odd">
+<td>ACOS</td>
+<td>求反余弦值，与函数 COS 互为反函数</td>
+</tr>
+<tr class="even">
+<td>TAN</td>
+<td>求正切值</td>
+</tr>
+<tr class="odd">
+<td>ATAN</td>
+<td>求反正切值，与函数 TAN 互为反函数</td>
+</tr>
+<tr class="even">
+<td>COT</td>
+<td>求余切值</td>
+</tr>
+</tbody>
+</table>
+<h4 id="字符串函数">6.3.2 字符串函数</h4>
+<table>
+<thead>
+<tr class="header">
+<th>函数名称</th>
+<th>作 用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>LENGTH</td>
+<td>计算字符串长度函数，返回字符串的字节长度</td>
+</tr>
+<tr class="even">
+<td>CONCAT</td>
+<td>合并字符串函数，返回结果为连接参数产生的字符串，参数可以使一个或多个</td>
+</tr>
+<tr class="odd">
+<td>INSERT</td>
+<td>替换字符串函数</td>
+</tr>
+<tr class="even">
+<td>LOWER</td>
+<td>将字符串中的字母转换为小写</td>
+</tr>
+<tr class="odd">
+<td>UPPER</td>
+<td>将字符串中的字母转换为大写</td>
+</tr>
+<tr class="even">
+<td>LEFT</td>
+<td>从左侧字截取符串，返回字符串左边的若干个字符</td>
+</tr>
+<tr class="odd">
+<td>RIGHT</td>
+<td>从右侧字截取符串，返回字符串右边的若干个字符</td>
+</tr>
+<tr class="even">
+<td>TRIM</td>
+<td>删除字符串左右两侧的空格</td>
+</tr>
+<tr class="odd">
+<td>REPLACE</td>
+<td>字符串替换函数，返回替换后的新字符串</td>
+</tr>
+<tr class="even">
+<td>SUBSTRING</td>
+<td>截取字符串，返回从指定位置开始的指定长度的字符换</td>
+</tr>
+<tr class="odd">
+<td>REVERSE</td>
+<td>字符串反转（逆序）函数，返回与原始字符串顺序相反的字符串</td>
+</tr>
+</tbody>
+</table>
+<h4 id="日期函数">6.3.3 日期函数</h4>
+<table>
+<thead>
+<tr class="header">
+<th>函数名称</th>
+<th>作 用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CURDATE 和 CURRENT_DATE</td>
+<td>两个函数作用相同，返回当前系统的日期值</td>
+</tr>
+<tr class="even">
+<td>CURTIME 和 CURRENT_TIME</td>
+<td>两个函数作用相同，返回当前系统的时间值</td>
+</tr>
+<tr class="odd">
+<td>NOW 和 SYSDATE</td>
+<td>两个函数作用相同，返回当前系统的日期和时间值</td>
+</tr>
+<tr class="even">
+<td>MONTH</td>
+<td>获取指定日期中的月份</td>
+</tr>
+<tr class="odd">
+<td>MONTHNAME</td>
+<td>获取指定日期中的月份英文名称</td>
+</tr>
+<tr class="even">
+<td>DAYNAME</td>
+<td>获取指定曰期对应的星期几的英文名称</td>
+</tr>
+<tr class="odd">
+<td>DAYOFWEEK</td>
+<td>获取指定日期对应的一周的索引位置值</td>
+</tr>
+<tr class="even">
+<td>WEEK</td>
+<td>获取指定日期是一年中的第几周，返回值的范围是否为 0〜52 或 1〜53</td>
+</tr>
+<tr class="odd">
+<td>DAYOFYEAR</td>
+<td>获取指定曰期是一年中的第几天，返回值范围是1~366</td>
+</tr>
+<tr class="even">
+<td>DAYOFMONTH</td>
+<td>获取指定日期是一个月中是第几天，返回值范围是1~31</td>
+</tr>
+<tr class="odd">
+<td>YEAR</td>
+<td>获取年份，返回值范围是 1970〜2069</td>
+</tr>
+<tr class="even">
+<td>TIME_TO_SEC</td>
+<td>将时间参数转换为秒数</td>
+</tr>
+<tr class="odd">
+<td>SEC_TO_TIME</td>
+<td>将秒数转换为时间，与TIME_TO_SEC 互为反函数</td>
+</tr>
+<tr class="even">
+<td>DATE_ADD 和 ADDDATE</td>
+<td>两个函数功能相同，都是向日期添加指定的时间间隔</td>
+</tr>
+<tr class="odd">
+<td>DATE_SUB 和 SUBDATE</td>
+<td>两个函数功能相同，都是向日期减去指定的时间间隔</td>
+</tr>
+<tr class="even">
+<td>ADDTIME</td>
+<td>时间加法运算，在原始时间上添加指定的时间</td>
+</tr>
+<tr class="odd">
+<td>SUBTIME</td>
+<td>时间减法运算，在原始时间上减去指定的时间</td>
+</tr>
+<tr class="even">
+<td>DATEDIFF</td>
+<td>获取两个日期之间间隔，返回参数 1 减去参数 2 的值</td>
+</tr>
+<tr class="odd">
+<td>DATE_FORMAT</td>
+<td>格式化指定的日期，根据参数返回指定格式的值</td>
+</tr>
+<tr class="even">
+<td>WEEKDAY</td>
+<td>获取指定日期在一周内的对应的工作日索引</td>
+</tr>
+</tbody>
+</table>
+<h4 id="聚合函数">6.3.5 聚合函数</h4>
+<table>
+<thead>
+<tr class="header">
+<th>函数名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MAX</td>
+<td>查询指定列的最大值</td>
+</tr>
+<tr class="even">
+<td>MIN</td>
+<td>查询指定列的最小值</td>
+</tr>
+<tr class="odd">
+<td>COUNT</td>
+<td>统计查询结果的行数</td>
+</tr>
+<tr class="even">
+<td>SUM</td>
+<td>求和，返回指定列的总和</td>
+</tr>
+<tr class="odd">
+<td>AVG</td>
+<td>求平均值，返回指定列数据的平均值</td>
+</tr>
+</tbody>
+</table>
+
+    </div>
+
+    
+    
+    
+	
+	<div>
+		
+			<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+
+<div>
+    
+       <div style="text-align:center;color:#bfbfbf;font-size:16px;">
+             <span>--- 本文结束 </span>
+             <i class="fa fa-thumbs-o-up"></i>
+             <span> 感谢阅读 ---</span>
+       </div>
+    
+</div>
+		
+	</div>
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag"># 学习笔记</a>
+              <a href="/tags/MySQL/" rel="tag"># MySQL</a>
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"># 数据库</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/14/Java%E5%9F%BA%E7%A1%80/Java%E7%9F%A5%E8%AF%86%E7%82%B9/Java%EF%BC%9A%E5%8C%85%E8%A3%85%E7%B1%BB/" rel="prev" title="Java：包装类">
+      <i class="fa fa-chevron-left"></i> Java：包装类
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/21/MySQL/MySQL%E6%8F%90%E9%AB%98%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/MySQL%EF%BC%9A%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-5/" rel="next" title="MySQL：提高笔记-5">
+      MySQL：提高笔记-5 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#mysql%E6%8F%90%E9%AB%98%E7%AC%94%E8%AE%B0-4"><span class="nav-text">MySQL：提高笔记-4</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E4%BC%98%E5%8C%96"><span class="nav-text">1. 应用优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E8%BF%9E%E6%8E%A5%E6%B1%A0"><span class="nav-text">1.1 使用连接池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%8F%E5%B0%91%E5%AF%B9mysql%E7%9A%84%E8%AE%BF%E9%97%AE"><span class="nav-text">1.2 减少对MySQL的访问</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%81%BF%E5%85%8D%E5%AF%B9%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E9%87%8D%E5%A4%8D%E6%A3%80%E7%B4%A2"><span class="nav-text">1.2.1 避免对数据进行重复检索</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0-cache-%E5%B1%82"><span class="nav-text">1.2.2 增加 cache 层</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E8%B4%9F%E8%BD%BD"><span class="nav-text">1.3 负载负载</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A9%E7%94%A8mysql%E5%A4%8D%E5%88%B6%E5%88%86%E6%B5%81%E6%9F%A5%E8%AF%A2"><span class="nav-text">1.3.1 利用MySQL复制分流查询</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%87%E7%94%A8%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9E%B6%E6%9E%84"><span class="nav-text">1.3.2 采用分布式数据库架构</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql%E4%B8%AD%E6%9F%A5%E8%AF%A2%E7%BC%93%E5%AD%98%E4%BC%98%E5%8C%96"><span class="nav-text">2. MySQL中查询缓存优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-text">2.1 概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-text">2.2 操作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E7%BC%93%E5%AD%98%E9%85%8D%E7%BD%AE"><span class="nav-text">2.3 查询缓存配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%90%AF%E6%9F%A5%E8%AF%A2%E7%BC%93%E5%AD%98"><span class="nav-text">2.4 开启查询缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E7%BC%93%E5%AD%98select%E9%80%89%E9%A1%B9"><span class="nav-text">2.5 查询缓存SELECT选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E7%BC%93%E5%AD%98%E5%A4%B1%E6%95%88%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-text">2.6 查询缓存失效的情况</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E5%8F%8A%E4%BC%98%E5%8C%96"><span class="nav-text">3. MySQL内存管理及优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96%E5%8E%9F%E5%88%99"><span class="nav-text">3.1 内存优化原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#myisam-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96"><span class="nav-text">3.2 MyISAM 内存优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#key_buffer_size"><span class="nav-text">key_buffer_size</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#read_buffer_size"><span class="nav-text">read_buffer_size</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#read_rnd_buffer_size"><span class="nav-text">read_rnd_buffer_size</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#innodb-%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96"><span class="nav-text">3.3 InnoDB 内存优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#innodb_buffer_pool_size"><span class="nav-text">innodb_buffer_pool_size</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#innodb_log_buffer_size"><span class="nav-text">innodb_log_buffer_size</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql%E5%B9%B6%E5%8F%91%E5%8F%82%E6%95%B0%E8%B0%83%E6%95%B4"><span class="nav-text">4. MySQL并发参数调整</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#max_connections"><span class="nav-text">4.1 max_connections</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#back_log"><span class="nav-text">4.2 back_log</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#table_open_cache"><span class="nav-text">4.3 table_open_cache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#thread_cache_size"><span class="nav-text">4.4 thread_cache_size</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#innodb_lock_wait_timeout"><span class="nav-text">4.5 innodb_lock_wait_timeout</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql%E9%94%81%E9%97%AE%E9%A2%98"><span class="nav-text">5. MySQL锁问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%81%E6%A6%82%E8%BF%B0"><span class="nav-text">5.1 锁概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%81%E5%88%86%E7%B1%BB"><span class="nav-text">5.2 锁分类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#mysql-%E9%94%81"><span class="nav-text">5.3 MySQL 锁</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#myisam-%E8%A1%A8%E9%94%81"><span class="nav-text">5.2 MyISAM 表锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%8A%A0%E8%A1%A8%E9%94%81"><span class="nav-text">5.2.1 如何加表锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%BB%E9%94%81%E6%A1%88%E4%BE%8B"><span class="nav-text">5.2.2 读锁案例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E9%94%81%E6%A1%88%E4%BE%8B"><span class="nav-text">5.2.3 写锁案例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-text">5.2.4 结论</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E9%94%81%E7%9A%84%E4%BA%89%E7%94%A8%E6%83%85%E5%86%B5"><span class="nav-text">5.2.5 查看锁的争用情况</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#innodb-%E8%A1%8C%E9%94%81"><span class="nav-text">5.3 InnoDB 行锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%8C%E9%94%81%E4%BB%8B%E7%BB%8D"><span class="nav-text">5.3.1 行锁介绍</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-text">5.3.2 背景知识</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#innodb-%E7%9A%84%E8%A1%8C%E9%94%81%E6%A8%A1%E5%BC%8F"><span class="nav-text">5.3.3 InnoDB 的行锁模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="nav-text">5.3.4 案例准备工作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%8C%E9%94%81%E5%9F%BA%E6%9C%AC%E6%BC%94%E7%A4%BA"><span class="nav-text">5.3.5 行锁基本演示</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E7%B4%A2%E5%BC%95%E8%A1%8C%E9%94%81%E5%8D%87%E7%BA%A7%E4%B8%BA%E8%A1%A8%E9%94%81"><span class="nav-text">5.3.6 无索引行锁升级为表锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%B4%E9%9A%99%E9%94%81%E5%8D%B1%E5%AE%B3"><span class="nav-text">5.3.7 间隙锁危害</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#innodb-%E8%A1%8C%E9%94%81%E4%BA%89%E7%94%A8%E6%83%85%E5%86%B5"><span class="nav-text">5.3.8 InnoDB 行锁争用情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">5.3.9 总结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8sql%E6%8A%80%E5%B7%A7"><span class="nav-text">6. 常用SQL技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sql%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F"><span class="nav-text">6.1 SQL执行顺序☆☆☆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E4%BD%BF%E7%94%A8"><span class="nav-text">6.2 正则表达式使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0"><span class="nav-text">6.3 MySQL 常用函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E5%AD%97%E5%87%BD%E6%95%B0"><span class="nav-text">6.3.1 数字函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%87%BD%E6%95%B0"><span class="nav-text">6.3.2 字符串函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A5%E6%9C%9F%E5%87%BD%E6%95%B0"><span class="nav-text">6.3.3 日期函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%81%9A%E5%90%88%E5%87%BD%E6%95%B0"><span class="nav-text">6.3.5 聚合函数</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZhuCC"
+      src="/images/%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">ZhuCC</p>
+  <div class="site-description" itemprop="description">不急不躁。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">153</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">69</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+	  
+	  
+        <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+        <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+        <div class="widget-wrap">
+            <div id="myCanvasContainer" class="widget tagcloud">
+                <canvas width="250" height="250" id="resCanvas" style="width=100%">
+                    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anaconda/" rel="tag">Anaconda</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GPU/" rel="tag">GPU</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTP/" rel="tag">HTTP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IO/" rel="tag">IO</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDBC/" rel="tag">JDBC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDK/" rel="tag">JDK</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">34</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E8%AF%AD%E6%B3%95/" rel="tag">Java语法</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/K%E8%BF%91%E9%82%BB/" rel="tag">K近邻</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LeetCode/" rel="tag">LeetCode</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pytorch/" rel="tag">Pytorch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringMVC/" rel="tag">SpringMVC</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP-IP/" rel="tag">TCP/IP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TensorFlow/" rel="tag">TensorFlow</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadLocal/" rel="tag">ThreadLocal</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TortoiseGit/" rel="tag">TortoiseGit</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Typora/" rel="tag">Typora</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/" rel="tag">Ubuntu</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nvidia/" rel="tag">nvidia</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/" rel="tag">决策树</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98/" rel="tag">分类问题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98/" rel="tag">刷题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/" rel="tag">博客搭建</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%82%E8%80%83%E6%96%87%E4%BB%B6/" rel="tag">参考文件</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a><span class="tag-list-count">46</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/" rel="tag">开发框架</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%81%E4%B9%85%E5%B1%82%E6%A1%86%E6%9E%B6/" rel="tag">持久层框架</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E6%8E%A8%E5%AF%BC/" rel="tag">数学推导</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97/" rel="tag">数据清洗</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A5%E5%BF%97%E6%A1%86%E6%9E%B6/" rel="tag">日志框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" rel="tag">特征选择</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="tag">环境配置</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag">目标检测</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" rel="tag">线性回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%81%9A%E7%B1%BB/" rel="tag">聚类</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%A8%E7%A4%BA%E5%B1%82/" rel="tag">表示层</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E8%B7%AF/" rel="tag">计算机网路</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag">读书笔记</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="tag">贝叶斯</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8/" rel="tag">软件使用</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/" rel="tag">逻辑回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E5%90%88%E7%B1%BB/" rel="tag">集合类</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" rel="tag">集成学习</a><span class="tag-list-count">1</span></li></ul>
+                </canvas>
+            </div>
+        </div>
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZhuCC</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">2.3m</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">35:14</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : '3it0tVBbppFeFBVa8QgB3vxM-gzGzoHsz',
+      appKey     : '9VtnMWSrhAtC1pSRaA4Rivx9',
+      placeholder: "请多多指教~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

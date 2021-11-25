@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Mario.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Mario.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="虽然之前已经是学了一波数据结构了，过程中突然又发现了一个视频教程，就顺带给看了，算是相互参考吧，并也做了一波笔记，总共分了 5 篇笔记，此为 1&#x2F;5 篇，其余地址如下：  数据结构：学习笔记-a 数据结构：学习笔记-b 数据结构：学习笔记-c 数据结构：学习笔记-d 数据结构：学习笔记-e">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构：学习笔记-a">
+<meta property="og:url" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/index.html">
+<meta property="og:site_name" content="贤余超">
+<meta property="og:description" content="虽然之前已经是学了一波数据结构了，过程中突然又发现了一个视频教程，就顺带给看了，算是相互参考吧，并也做了一波笔记，总共分了 5 篇笔记，此为 1&#x2F;5 篇，其余地址如下：  数据结构：学习笔记-a 数据结构：学习笔记-b 数据结构：学习笔记-c 数据结构：学习笔记-d 数据结构：学习笔记-e">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/线性表.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/非线性结构.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/数组的存储.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/数组地址分配.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/数组的插入.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/数组删除优化.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/ArrayList源码分析1-通过无参构造创建容器并添加元素.png">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/ArrayList源码分析2-从集合中获取元素.png">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/链表和数组的对比.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/单链表结构.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/插入和删除节点.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/循环链表结构.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/双向链表结构.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/双向循环链表结构.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/LinkedList源码分析1-通过无参构造函数创建容器并添加元素.png">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/LinkedList源码分析2-通过索引从集合中获取元素.png">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/栈存储结构特点.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/Stack源码分析1-栈的创建和元素入栈.png">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/Stack源码分析2-元素出栈.png">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/队列结构.PNG">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/基于数组的队列的实现思路图.png">
+<meta property="og:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/队列用链表实现.PNG">
+<meta property="article:published_time" content="2020-08-23T02:24:00.000Z">
+<meta property="article:modified_time" content="2020-08-23T02:24:00.000Z">
+<meta property="article:author" content="ZhuCC">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="数据结构">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/线性表.PNG">
+
+<link rel="canonical" href="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据结构：学习笔记-a | 贤余超</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+	<a target="_blank" rel="noopener" href="https://github.com/zhuChengChao" class="github-corner" aria-label="View source on GitHub">
+	<svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+	<path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+	<path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+	<path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+	</svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">贤余超</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一位底层码农 :-)</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">69</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">14</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">161</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="ZhuCC">
+      <meta itemprop="description" content="不急不躁。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贤余超">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据结构：学习笔记-a
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-23 10:24:00" itemprop="dateCreated datePublished" datetime="2020-08-23T10:24:00+08:00">2020-08-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>25k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>23 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>虽然之前已经是学了一波数据结构了，过程中突然又发现了一个视频教程，就顺带给看了，算是相互参考吧，并也做了一波笔记，总共分了 5 篇笔记，此为 1/5 篇，其余地址如下：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/">数据结构：学习笔记-a</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-b/">数据结构：学习笔记-b</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2020/08/30/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-c/">数据结构：学习笔记-c</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2020/08/30/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-d/">数据结构：学习笔记-d</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2020/08/30/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-e/">数据结构：学习笔记-e</a></li>
+</ul>
+<span id="more"></span>
+<h1 id="数据结构学习笔记-a">数据结构：学习笔记-a</h1>
+<h2 id="课程目标">1. 课程目标</h2>
+<ol type="1">
+<li>理解什么是线性表;</li>
+<li>掌握数组数据结构，理解 ArrayList的源码;</li>
+<li>掌握链表数据结构，理解 LinkedList的源码;</li>
+<li>掌握栈这种数据结构，理解 Stack的部分源码;</li>
+<li>掌握队列这种数据结构</li>
+</ol>
+<h2 id="入门概述">2. 入门概述</h2>
+<h3 id="什么是数据结构和算法">2.1 什么是数据结构和算法</h3>
+<p>​ 很多教材或者教程在开篇的时候都会来介绍这两个概念，但是概念毕竟是抽象的，所以我们不必死扣定义，毕竟我们不是为了考试而学的，但这并不是说我们不需要理解其概念，我们只是说不要陷入概念的怪圈。下面我们来介绍一下相关概念：</p>
+<ol type="1">
+<li>数据结构包括数据对象以及它们在计算机中的组织方式，即它们的逻辑结构和物理存储结构，一般我们可以认为数据结构指的是一组数据的存储结构。</li>
+<li>算法就是操作数据的方法，即如何操作数据效率更高，更节省资源。</li>
+</ol>
+<p>​ 这只是抽象的定义，我们来举一个例子，你有一批货物需要运走，你是找来小桥车来运还是找卡车来运？这就是数据结构的范畴，选取什么样的结构来存储；至于你货物装车的时候是把货物堆放在一起还是分开放这就是算法的范畴了，如何放置货物更有效率更节省空间。</p>
+<p>​ 数据结构和算法看起来是两个东西，但是我们为什么要放在一起来说呢？那是因为数据结构和算法是相辅相成的，数据结构是为算法服务的，而算法要作用在特定的数据结构之上，因此，我们无法孤立数据结构来讲算法，也无法孤立算法来讲数据结构。</p>
+<p>​ 在学习算法之前我们先来学习几个最基本的数据结构，这是后续学习其他数据结构和算法的基础，也就是我们今天要来学习的：数组，链表，栈，队列。这个四个数据结构又可称之为线性表数据结构。</p>
+<h3 id="线性表概念">2.2 线性表概念</h3>
+<p>​ 所谓的线性表，就是将数据排成像一条长线一样的结构，数组，链表，栈，队列都是线性表结构，线性表上的每个数据最多只有前后两个方向，下面以一幅图的形式来展现一下线性表结构</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/线性表.PNG" alt="线性表"></p>
+<p>与这种线性结构对应的就是非线性结构，比如后续要学习的数，堆，图等，在这些非线性数据结构中，数据之间并不是简单的前后关系，如下图：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/非线性结构.PNG" alt="非线性结构"></p>
+<p>在理解玩线性表的概念之后，接下来正式学习今天的四个数据结构。</p>
+<h2 id="数组">3. 数组</h2>
+<h3 id="概念">3.1 概念</h3>
+<p>​ 数组是一种<strong>线性表数据结构</strong>，它用一组<strong>连续的内存空间</strong>，来存储一组具有<strong>相同类型的数据</strong>。这里我们要抽取出三个跟数组相关的关键词：线性表，连续内存空间，相同数据类型；数组具有连续的内存空间，存储相同类型的数据，正是该特性使得数组具有一个特性：随机访问。但是有利有弊，这个特性虽然使得访问数组变的非常容易但是也使得数组插入和删除操作会变得很低效，插入和删除数据后为了保证连续性，要做很多数据搬迁工作。</p>
+<h3 id="逻辑结构和物理结构">3.2 逻辑结构和物理结构</h3>
+<p>​ 所谓的数组的逻辑结构指的是我们可以用什么的表示方式来描述数组元素，比如有一个数组a，数组中有 n个元素，我们可以用(a1,a2,a3,.....an)来描述数组中的每个元素，当然后面我们会将具体如何访问数组中的每个元素。数组的物理结构指的是数组元素实际的存储形式，当然了从概念我们可以看出数组的物理存储空间是一块连续的内存单元，为了说明白这个事情，这里给大家准备了一副图：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/数组的存储.PNG" alt="数组的存储"></p>
+<p>从图中我们可以看出访问数组的元素是通过下标来访问的，那是如何做到的呢？</p>
+<h4 id="数组元素的访问">3.2.1 数组元素的访问</h4>
+<p>我们拿一个长度为10的数组来举例，int [] a= new int[10]，在下面的图中，计算机给数组分配了一块连续的空间，100-139，其中内存的起始地址为baseAddress=100</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/数组地址分配.PNG" alt="数组地址分配"></p>
+<p>我们知道，计算机给每个内存单元都分配了一个地址，通过地址来访问其数据，因此要访问数组中的某个元素时，首先要经过一个寻址公式计算要访问的元素在内存中的地址：</p>
+<p><code>a[i] = baseAddress + i*dataTypeSize</code></p>
+<p>其中dataTypeSize代表数组中的元素类型大小，在这个例子中，存储的是int型的数据，因此dataTypeSize=4个字节</p>
+<h4 id="数组下表为什么从0开始">3.2.2 数组下表为什么从0开始</h4>
+<p>数组的下表为什么要从0开始而不是从1开始呢？</p>
+<p>从数据存储的内存模型上来看，&quot;下标&quot;最确切的定义应该是“偏移（offset）”。前面也讲到，如果用array在表示数组的首地址，array[k]就表示偏移 k 个type_size的位置，所以计算array[k]的内存地址只需要用这个公式:</p>
+<p><code>array[k]_address = baseAddress + k*type_size</code></p>
+<p>但是如果下标从1开始，那么计算array[k]的内存地址会变成：</p>
+<p><code>array[k]_address = baseAddress + (k-1)*type_size</code></p>
+<p>对比两个公式，不难发现从数组下标从1开始如果根据下标去访问数组元素，对于CPU来说，就多了一次减法指令。</p>
+<p>当然另一方面也是由于历史原因，c语言设计者使用 0 开始作为数组的下标，后来的高级语言沿用了这一设计。</p>
+<h3 id="数组的特点">3.3 数组的特点</h3>
+<h4 id="高效的随机访问">3.3.1 高效的随机访问</h4>
+<p>通过前面的学习我们已经知道，数组元素的访问是通过下标来访问的，计算机通过数组的首地址和寻址公式能够很快的找到想要访问的元素。</p>
+<h4 id="低效插入和删除">3.3.2 低效插入和删除</h4>
+<p>前面我们已经讲到数组是一段连续的内存空间，因此为了保证数组的连续性会使得数组的插入和删除的效率变的很低，下面我们来分析一下：</p>
+<p><strong>插入：</strong></p>
+<p>假设数组的长度为 n，现在如果我们需要将一个数据插入到数组中的第 k 个位置。为了把第 k 个位置腾出来给新来的数据，我们需要将第k～n这部分的元素都顺序地往后挪一位。如下图所示：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/数组的插入.PNG" alt="数组的插入"></p>
+<p>那数组插入有没有相对优化的方案呢？</p>
+<p>如果数组中的数据是有序的，我们在某个位置插入一个新的元素时，就必须按照刚才的方法搬移k之后的数据。但是，如果数组中存储的数据并没有任何规律，数组只是被当作一个存储数据的集合。在这种情况下，如果要将某个数组插入到第k个位置，为了避免大规模的数据搬移，我们还有一个简单的办法就是，直接将第k位的数据搬移到数组元素的最后，把新的元素直接放入第k个位置。这种处理思想会在快排中用到。</p>
+<p><strong>删除：</strong></p>
+<p>如果我们要删除第k个位置的数据，为了内存的连续性，也需要搬移数据，不然中间就会出现空洞，内存就不连续了。</p>
+<p>实际上，在某些特殊场景下，我们并不一定非得追求数组中数据的连续性。如果我们将多次删除操作集中在一起执行，删除的效率是不是会提高很多呢？举个例子数组a[6]中存储了6个元素：a1,a2,a3,a4,a5,a6。现在我们要依次删除a1,a2这两个元素。</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/数组删除优化.PNG" alt="数组删除优化"></p>
+<p>为了避免a3,a4,a5,a6这几个数据会被搬移两次，我们可以记录下已经删除的数据。每次的删除并不是真正地搬移数据，只是记录数据已经被删除。当数组没有更多空间存储数据时，我们再触发执行一次真正的删除操作，这样就大大减少了删除操作导致的数据搬移。</p>
+<p>如果你了解 JVM，你会发现，这不就是 JVM标记清除垃圾回收算法的核心思想吗？没错，数据结构和算法的魅力就在于此，很多时候我们并不是要去死记硬背某个数据结构或者算法，而是要学习它背后的思想和处理技巧，这些东西才是最有价值的。如果你细心留意，不管是在软件开发还是架构设计中，总能找到某些算法和数据结构的影子。</p>
+<h3 id="数组的应用">3.4 数组的应用</h3>
+<p>针对数组类型，很多语言都提供了容器类，比如Java中的ArrayList、C++ STL中的vector。在项目开发中，什么时候适合用数组，什么时候适合用容器呢？</p>
+<p>这里我拿Java语言来举例。如果你是Java工程师，几乎天天都在用 ArrayList，对它应该非常熟悉。那它与数组相比，到底有哪些优势呢？</p>
+<p>我个人觉得，ArrayList最大的优势就是可以将很多数组操作的细节封装起来。比如前面提到的数组插入、删除数据时需要搬移其他数据等。另外，它还有一个优势，就是<strong>支持动态扩容</strong>。数组本身在定义的时候需要预先指定大小，因为需要分配连续的内存空间。如果我们申请了大小为10的数组，当第11个数据需要存储到数组中时我们就需要重新分配一块更大的空间，将原来的数据复制过去，然后再将新的数据插入。如果使用ArrayList，我们就完全不需要关心底层的扩容逻辑，ArrayList已经帮我们实现好了。每次存储空间不够的时候，它都会将空间自动扩<br>
+容为1.5倍大小。不过，这里需要注意一点，因为扩容操作涉及内存申请和数据搬移，是比较耗时的。所以，<strong>如果事先能确定需要存储的数据大小，最好在创建ArrayList的时候事先指定数据大小</strong>。</p>
+<p>如果你对以上关于ArrayList的讲解不太明白，完全不用担心，因为接下来我们就针对java中ArrayList底层操作逻辑进行分析，理解数组的应用及ArrayList底层的扩容逻辑。</p>
+<h4 id="arraylist源码分析">3.4.1 ArrayList源码分析</h4>
+<p>这里有一段非常简短的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 初始化集合</span></span><br><span class="line">    List&lt;String&gt; list = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 向集合中添加元素</span></span><br><span class="line">    list.add(<span class="string">&quot;xyc&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面我们以断点调试的方式查看一下，当我们创建集合对象的时候发生了什么事</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/ArrayList源码分析1-通过无参构造创建容器并添加元素.png" alt="ArrayList源码分析1-通过无参构造创建容器并添加元素"></p>
+<p>通过分析可以知道：</p>
+<ol type="1">
+<li><p>创建ArrayList时采用默认的构造函数创建集合然后往里添加元素，第一次添加时将数组扩容到10的大小，之后添加元素都不会再扩容，直到第11次添加然后扩容1.5倍取整，此后如果需要扩容都是1.5倍取整，但是扩容到的最大值是Integer.MAX_VALUE;</p></li>
+<li><p>每次扩容时都会创建一个新的数组，然后将原数组中的数据搬移到新的数组中，所以回到开始我们所说的：如果事先能确定需要存储的数据大小，最好在创建ArrayList的时候事先指定数据大小</p>
+<p>我们可以查看ArrayList的带参构造函数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ArrayList</span><span class="params">(<span class="keyword">int</span> initialCapacity)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (initialCapacity &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// 直接使用传递的容量大小创建数组，这样的话只会在不够存储的时候才需要扩容</span></span><br><span class="line">        <span class="keyword">this</span>.elementData = <span class="keyword">new</span> Object[initialCapacity];</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (initialCapacity == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.elementData = EMPTY_ELEMENTDATA;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Illegal Capacity: &quot;</span>+</span><br><span class="line">                                           initialCapacity);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>比如我们要从数据库中取出10000条数据放入 ArrayList。我们看下面这几行代码，你会发现，相比之下，事先指定数据大小可以省掉很多次内存申请和数据搬移操作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;User&gt; users = <span class="keyword">new</span> ArrayList(<span class="number">10000</span>);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; ++i) &#123;</span><br><span class="line">	users.add(xxx);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="获取元素">3.3.4 获取元素</h4>
+<p>接下来我们写一段代码来分析一下从集合中获取元素</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 初始化集合</span></span><br><span class="line">    List&lt;String&gt; list = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 向集合中添加元素</span></span><br><span class="line">    list.add(<span class="string">&quot;xyc&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取刚刚存入的元素</span></span><br><span class="line">    String element = list.get(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>分析查看集合的get方法</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/ArrayList源码分析2-从集合中获取元素.png" alt="ArrayList源码分析2-从集合中获取元素"></p>
+<p>到这里我们关于ArrayList的底层源码解析就结束了，当然了我们只分析了ArrayList中很小一部分源码，它还提供了很多的方法。</p>
+<p>作为高级语言编程者，是不是数组就无用武之地了呢？当然不是，有些时候，用数组会更合适些，列出以下几点：</p>
+<ol type="1">
+<li>Java ArrayList无法存储基本类型，比如int、long，需要封装为Integer、Long类，而Autoboxing、Unboxing则有一定的性能消耗，所以如果特别关注性能，或者希望使用基本类型，就可以选用数组。</li>
+<li>如果数据大小事先已知，并且对数据的操作非常简单，用不到ArrayList提供的大部分方法，也可以直接使用数组。</li>
+</ol>
+<p>总结一下，对于业务开发，直接使用容器就足够了，省时省力。毕竟损耗一丢丢性能，完全不会影响到系统整体的性能。但如果你是做一些非常底层的开发，比如开发网络框架，性能的优化需要做到极致，这个时候数组就会优于容器，成为首选。</p>
+<p>至此，数组部分的学习就完成了，接下来我们进入链表的学习。</p>
+<h2 id="链表">4. 链表</h2>
+<h3 id="概念-1">4.1 概念</h3>
+<p>链表（LinkedList）是一种物理存储单元上非连续、非顺序的存储结构，数据元素的逻辑顺序是通过链表中的指针链接次序实现的。链表由一系列结点（链表中每一个元素称为结点）组成，结点可以在运行时动态生成。每个节点包括两个部分：一个是存储数据元素的数据域，另一个是存储下一个结点地址的指针域。</p>
+<h3 id="存储结构">4.2 存储结构</h3>
+<p>相比数组，链表是一种稍微复杂一点的数据结构。对于初学者来说，掌握起来也要比数组稍难一些。这两个非常基础、非常常用的数据结构，我们常常将会放到一块儿来比较。所以我们先来看，这两者有什么区别。</p>
+<p>首先我们从底层存储结构来看：</p>
+<p><strong>数组：</strong>需要一块连续的存储空间，对内存的要求比较高，比如我们要申请一个1000M的数组，如果内存中没有连续的足够大的存储空间则会申请失败，即便内存的剩余可用空间大于1000M，仍然会申请失败。</p>
+<p><strong>链表：</strong>与数组相反，它并不需要一块连续的内存空间，它通过指针将一组<strong>零散的内存块</strong>串联起来使用，所以如果我们申请一个1000M大小的链表，只要内存剩余的可用空间大于1000M，便不会出现问题。</p>
+<p>下方图片对比了链表和数组的存储结构：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/链表和数组的对比.PNG" alt="链表和数组的对比"></p>
+<p>此时我们在来回顾我们刚刚提到的链表的概念：物理存储单元上非连续，非顺序，元素的逻辑顺序是通过链表中的指针链接次序实现的，链表由一些列节点组成，每个节点包括两个部分：一个是存储数据元素的数据域，另一个是存储下一个节点地址的指针域。</p>
+<p>当然了这只是我们提到的链表的最基本的存储形式，其实链表有很多种不同的类型，分别对应了不同的结构，接下来我们就来分析不同的链表类型。</p>
+<h3 id="链表类型">4.3 链表类型</h3>
+<h4 id="单链表">4.3.1 单链表</h4>
+<p>所谓的单链表就是我们刚刚讲到的链表的最基本的结构，链表通过指针将一组零散的内存块串联在一起。其中，我们把内存块称为链表的<strong>“结点”</strong>。为了将所有的结点串起来，每个链表的结点除了存储数据之外，还需要记录链上的下一个结点的地址。如图所示，我们把这个记录下个结点地址的指针叫作<strong>后继指针next</strong>，如果链表中的某个节点为p，p的下一个节点为q，我们可以表示为：p-&gt;next=q</p>
+<p>下面的图更加详细的描述了但链表的存储结构</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/单链表结构.PNG" alt="单链表结构"></p>
+<p>从上述单链表图中，可以发现，其中有两个结点是比较特殊的，它们分别是第一个结点和最后一个结点。我们习惯性地把<strong>第一个结点叫作头结点</strong>，把<strong>最后一个结点叫作尾结点</strong>。其中，<strong>头结点用来记录链表的基地址</strong>，有了它，我们就可以遍历得到整条链表。而<strong>尾结点特殊的地方是：指针不是指向下一个结点，而是指向一个空地址NULL</strong>，表示这是链表上最后一个结点。</p>
+<p>与数组一样，链表也支持数据的查找、插入和删除操作。</p>
+<p>在进行数组的插入、删除操作时，为了保持内存数据的连续性，需要做大量的数据搬移。而在链表中插入或者删除一个数据，我们并不需要为了保持内存的连续性而搬移结点，因为链表的存储空间本身就不是连续的。所以，在链表中插入和删除一个数据是非常快速的。</p>
+<p>针对链表的插入和删除操作，只需考虑相邻节点的指针改变，如下：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/插入和删除节点.PNG" alt="插入和删除节点"></p>
+<p>但是，有利就有弊。链表要想随机访问第k个元素，就没有数组那么高效了。因为链表中的数据并非连续存储的，所以无法像数组那样，根据首地址和下标，通过寻址公式就能直接计算出对应的内存地址，而是需要根据针一个结点一个结点地依次遍历，直到找到相应的结点，所以，链表随机访问的性能没有数组好。</p>
+<h4 id="循环链表">4.3.2 循环链表</h4>
+<p>​ 循环链表是一种特殊的单链表。实际上，循环链表也很简单。它跟单链表唯一的区别就在尾结点。我们知道，单链表的尾结点指针指向空地址，表示这就是最后的结点了。而循环链表的尾结点指针是指向链表的头结点。从我画的循环链表图中，你应该可以看出来，它像一个环一样首尾相连，所以叫作“循环”链表，和单链表相比，循环链表的优点是从链尾到链头比较方便。当要处理的数据具有环型结构特点时，就特别适合采用循环链表，循环链表的结构如图所示：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/循环链表结构.PNG" alt="循环链表结构"></p>
+<h4 id="双向链表">4.3.3 双向链表</h4>
+<p>单向链表只有一个方向，结点只有一个后继指针next指向后面的结点。而双向链表，顾名思义，它支持两个方向，每个结点不止有一个后继指针next指向后面的结点，还有一个前驱指针prev指向前面的结点，如图所示：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/双向链表结构.PNG" alt="双向链表结构"></p>
+<p>从图中可以看出来，双向链表需要额外的两个空间来存储后继结点和前驱结点的地址。所以，如果存储同样多的数据，双向链表要比单链表占用更多的内存空间。虽然两个指针比较浪费存储空间，但可以支持双向遍历，这样也带来了双向链表操作的灵活性。</p>
+<h4 id="双向循环链表">4.3.4 双向循环链表</h4>
+<p>​ 了解了循环链表和双向链表，如果把这两种链表整合在一起就是一个双向循环链表：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/双向循环链表结构.PNG" alt="双向循环链表结构"></p>
+<h3 id="链表和数组性能比较">4.4 链表和数组性能比较</h3>
+<p>通过之前的分析，可知数组和链表是两种截然不同的内存组织方式。正是因为内存存储的区别，它们插入、删除、随机访问操作的性能正好相反。</p>
+<p>数组简单易用，在实现上使用的是连续的内存空间，缺点是大小固定，一经声明就要占用整块连续内存空间。如果声明的数组过大，系统可能没有足够的连续内存空间分配给它，导致“内存不足（out of memory）”。如果声明的数组过小，则可能出现不够用的情况。这时只能再申请更大的内存空间，把原数组拷贝进去，非常费时。</p>
+<p>链表本身没有大小的限制，天然地支持动态扩容，我觉得这也是它与数组最大的区别。你可能会说，我们Java中的 ArrayList容器，也可以支持动态扩容啊？我们上一节课讲过，当我们往支持动态扩容的数组中插入一个数据时，如果数组中没有空闲空间了，就会申请一个更大的空间，将数据拷贝过去，而数据拷贝的操作是非常耗时的。</p>
+<p><strong>所以：</strong>数组的优势是查询速度非常快，但是增删改慢；链表的优势是增删改快，但是查询慢。</p>
+<h3 id="链表的应用">4.5 链表的应用</h3>
+<p>学习数组的时候我们分析了基于数组而实现的ArrayList集合，那 java中也有基于链表实现的集合LinkedList，接下来我们就来分析一下LinkedList的底层源码</p>
+<h4 id="linkedlist源码分析">4.5.1 LinkedList源码分析</h4>
+<p>首先我们写一段最简单的代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 构建容器</span></span><br><span class="line">    List&lt;String&gt; list = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">    <span class="comment">// 向容器中添加数据</span></span><br><span class="line">    list.add(<span class="string">&quot;xyc&quot;</span>);</span><br><span class="line">    list.add(<span class="string">&quot;zcc&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后我们以断电调试的方式进入底层源码进行查看，我们主要关注容器的构建和元素的添加。</p>
+<h4 id="容器构建及添加元素">4.5.2 容器构建及添加元素</h4>
+<ol type="1">
+<li><p>点开LinkedList源码查看LinkedList类的声明及属性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LinkedList</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">AbstractSequentialList</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">Deque</span>&lt;<span class="title">E</span>&gt;, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">transient</span> <span class="keyword">int</span> size = <span class="number">0</span>;</span><br><span class="line">	<span class="comment">// 链表的头指针</span></span><br><span class="line">    <span class="keyword">transient</span> Node&lt;E&gt; first;</span><br><span class="line">	<span class="comment">// 链表的尾指针</span></span><br><span class="line">    <span class="keyword">transient</span> Node&lt;E&gt; last;</span><br><span class="line">	<span class="comment">// 默认构造函数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LinkedList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 静态内部类Node，即链表中的节点</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line">        E item;			<span class="comment">// 节点中存储的数据</span></span><br><span class="line">        Node&lt;E&gt; next;   <span class="comment">// 节点中存储的后继指针next</span></span><br><span class="line">        Node&lt;E&gt; prev;   <span class="comment">// 节点中存储的前驱指针prev</span></span><br><span class="line"></span><br><span class="line">        Node(Node&lt;E&gt; prev, E element, Node&lt;E&gt; next) &#123;</span><br><span class="line">            <span class="keyword">this</span>.item = element;</span><br><span class="line">            <span class="keyword">this</span>.next = next;</span><br><span class="line">            <span class="keyword">this</span>.prev = prev;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 添加数据</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">add</span><span class="params">(E e)</span> </span>&#123;</span><br><span class="line">        linkLast(e);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">linkLast</span><span class="params">(E e)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> Node&lt;E&gt; l = last;</span><br><span class="line">        <span class="keyword">final</span> Node&lt;E&gt; newNode = <span class="keyword">new</span> Node&lt;&gt;(l, e, <span class="keyword">null</span>);</span><br><span class="line">        last = newNode;</span><br><span class="line">        <span class="keyword">if</span> (l == <span class="keyword">null</span>)</span><br><span class="line">            first = newNode;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            l.next = newNode;</span><br><span class="line">        size++;</span><br><span class="line">        modCount++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>调试过程如下：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/LinkedList源码分析1-通过无参构造函数创建容器并添加元素.png" alt="LinkedList源码分析1-通过无参构造函数创建容器并添加元素"></p></li>
+</ol>
+<p>通过分析我们可以知道，LinkedList内部采用双向链表实现数据的存储，那接下来我们来分析一下，如果从<br>
+LinkedList容器中获取数据。</p>
+<h4 id="获取元素-1">4.5.3 获取元素</h4>
+<p>从LinkedList中获取元素的代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 构建容器</span></span><br><span class="line">    List&lt;String&gt; list = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">    <span class="comment">// 向容器中添加数据</span></span><br><span class="line">    list.add(<span class="string">&quot;xyc&quot;</span>);</span><br><span class="line">    list.add(<span class="string">&quot;zcc&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取元素</span></span><br><span class="line">    String s = list.get(<span class="number">1</span>);</span><br><span class="line">    System.out.println(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看LinkedList中的get方法，源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">get</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 判断索引是否越界</span></span><br><span class="line">    checkElementIndex(index);</span><br><span class="line">    <span class="keyword">return</span> node(index).item;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkElementIndex</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!isElementIndex(index))</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IndexOutOfBoundsException(outOfBoundsMsg(index));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">isElementIndex</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如果索引不在[0, size)范围内就抛出索引越界异常，其中size是集合的长度</span></span><br><span class="line">    <span class="keyword">return</span> index &gt;= <span class="number">0</span> &amp;&amp; index &lt; size;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Node&lt;E&gt; <span class="title">node</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// assert isElementIndex(index);</span></span><br><span class="line">	<span class="comment">// 如果索引小于集合长度的一半则从头节点开始遍历，否则从尾节点开始遍历，因为底层用的是双向链表支持</span></span><br><span class="line">    <span class="keyword">if</span> (index &lt; (size &gt;&gt; <span class="number">1</span>)) &#123;</span><br><span class="line">        Node&lt;E&gt; x = first;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; index; i++)</span><br><span class="line">            x = x.next;</span><br><span class="line">        <span class="keyword">return</span> x;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Node&lt;E&gt; x = last;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = size - <span class="number">1</span>; i &gt; index; i--)</span><br><span class="line">            x = x.prev;</span><br><span class="line">        <span class="keyword">return</span> x;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码跟踪效果如下：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/LinkedList源码分析2-通过索引从集合中获取元素.png" alt="LinkedList源码分析2-通过索引从集合中获取元素"></p>
+<p>至此，关于LinkedList的源码解析就告一段落了，本课程中只分析了构建集合，向集合中添加元素以及根据索引从集合中获取元素的相关方法。</p>
+<h4 id="面试题">4.5.4 面试题</h4>
+<p><strong>LinkedList和ArrayList的比较</strong></p>
+<ol type="1">
+<li>ArrayList的实现基于数组，LinkedList的实现基于双向链表；</li>
+<li>对于随机访问，ArrayList优于LinkedList，ArrayList可以根据下表对元素进行随机访问。而LinkedList的每一个元素都依靠地址指针和它后面一个元素连接在一起，这种情况下，查找某个元素只能从链表头开始查询直到找到为止；</li>
+<li>对于插入和删除操作，LinkedList优于ArrayList，因为当元素被添加到LinkedList任意位置的时候，不需要像ArrayList那样重新计算大小或者是更新索引。</li>
+<li>LinkedList比ArrayList更占内存，因为LinkedList的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。</li>
+</ol>
+<p><strong>反转链表</strong></p>
+<p>上一小节我们分析了LinkedList的底层源码，那对于数据结构和算法来说我们不仅仅要掌握理论知识点，还要能够根据我们掌握的理论知识点去解题，达到对我们思维上的训练，接下来我们就以一道跟链表相关的面试来训练一下我们的思维及代码编写能力</p>
+<p><strong>反转单链表：LeetCode中的反转链表习题</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for singly-linked list.</span></span><br><span class="line"><span class="comment"> * public class ListNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     ListNode next;</span></span><br><span class="line"><span class="comment"> *     ListNode(int x) &#123; val = x; &#125;</span></span><br><span class="line"><span class="comment"> * &#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> ListNode <span class="title">reverseList</span><span class="params">(ListNode head)</span> </span>&#123;</span><br><span class="line">        ListNode curr = head;</span><br><span class="line">        ListNode pre = <span class="keyword">null</span>;</span><br><span class="line">        ListNode temp = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(curr != <span class="keyword">null</span>)&#123;</span><br><span class="line">            temp = curr.next;</span><br><span class="line">            curr.next = pre;</span><br><span class="line">            pre = curr;</span><br><span class="line">            curr = temp;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> pre;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="栈">5. 栈</h2>
+<h3 id="概念-2">5.1 概念</h3>
+<p>关于“栈”这种数据结构，它有一个典型的特点：先进后出，后进先出；只要满足这种特点的数据结构我们就可以说这是典型的“栈”数据结构，我们一般将这个特点归纳为一个：后进先出,英文表示为：Last In First Out即<strong>LIFO</strong>。为了更好的理解栈这种数据结构，我们以一幅图的形式来表示，如下：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/栈存储结构特点.PNG" alt="栈存储结构特点"></p>
+<p>我们从栈的操作特点上来看，似乎受到了限制，的确，栈就是一种操作受限的线性表，只允许在栈的一端进行数据的插入和删除，这两种操作分别叫做入栈和出栈。当某个数据集合如果只涉及到在其一端进行数据的插入和删除操作，并且满足先进后出，后进先出的特性时，我们应该首选栈这种数据结构来进行数据的存储。</p>
+<h3 id="栈的实现">5.2 栈的实现</h3>
+<p>从对栈的定义中我们发现栈主要包含两个操作，入栈和出栈，也就是在栈顶插入一个元素和在栈底删除一个元素，那理解了这个定义之后，我们来思考一个问题，如何来手动实现一个栈呢？</p>
+<p>实际上，栈既可以用数组来实现，也可以用链表来实现。用数组实现的栈叫顺序栈，用链表实现的叫链式栈。接下来我们就这两种形式分别去实现一下。</p>
+<h4 id="基于数组顺序栈的实现">5.2.1 基于数组顺序栈的实现</h4>
+<p>以下是基于数组的顺序栈的实现代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ArrayStack</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 栈大小</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> size;</span><br><span class="line">    <span class="comment">// 默认栈容量</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> DEFAULT_CAPACITY = <span class="number">10</span>;</span><br><span class="line">    <span class="comment">// 栈数据</span></span><br><span class="line">    <span class="keyword">private</span> Object[] elements;</span><br><span class="line">    <span class="comment">// 最大栈容量</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> MAX_ARRAY_SIZE = Integer.MAX_VALUE - <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 默认构造创建大小为10的栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ArrayStack</span><span class="params">()</span></span>&#123;</span><br><span class="line">        elements = <span class="keyword">new</span> Object[DEFAULT_CAPACITY];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 通过制定大小创建栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ArrayStack</span><span class="params">(<span class="keyword">int</span> capacity)</span></span>&#123;</span><br><span class="line">        elements = <span class="keyword">new</span> Object[capacity];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 入栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">push</span><span class="params">(Object element)</span></span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            checkCapacity(size+<span class="number">1</span>);</span><br><span class="line">            elements[size++]=element;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;<span class="keyword">catch</span> (RuntimeException e)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 检查栈容量</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkCapacity</span><span class="params">(<span class="keyword">int</span> minCapacity)</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(elements.length - minCapacity &lt; <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;栈容量不够了&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 出栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">pop</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(size &lt;= <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Object obj = elements[size-<span class="number">1</span>];</span><br><span class="line">        elements[--size] = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取栈大小</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> size;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编写好用数组实现的栈之后，我们来编写一个测试类如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    ArrayStack stack = <span class="keyword">new</span> ArrayStack();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">13</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> push = stack.push(i);</span><br><span class="line">        System.out.println(<span class="string">&quot;第&quot;</span>+(i+<span class="number">1</span>)+<span class="string">&quot;次存储数据为：&quot;</span>+i+<span class="string">&quot;，存储结果是：&quot;</span>+push);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">11</span>; i++) &#123;</span><br><span class="line">        Object pop = stack.pop();</span><br><span class="line">        System.out.println(pop);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="支持动态扩容的顺序栈">5.2.2 支持动态扩容的顺序栈</h4>
+<p>刚刚那个基于数组实现的栈，是一个固定大小的栈，也就是说，在初始化栈时需要事先指定栈的大小。当栈满之后，就无法再往里添加数据了。那我们如何基于数组实现一个可以支持动态扩容的栈呢？</p>
+<p>在数组那节中，当数组空间不够时，就重新申请一块更大的内存，将原来数组中数据统统拷贝过去。这样就实现了一个支持动态扩容的数组。</p>
+<p>所以，若要实现一个支持动态扩容的栈，我们只需要底层依赖一个支持动态扩容的数组就可以了。当栈满了之后，我们就申请一个更大的数组，将原来的数组搬移到新数组中。</p>
+<p>下面是前面顺讯栈的基础之上添加了支持动态扩容后的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 检查栈容量</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkCapacity</span><span class="params">(<span class="keyword">int</span> minCapacity)</span></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(elements.length - minCapacity &lt; <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="comment">//throw new RuntimeException(&quot;栈容量不够了&quot;);</span></span><br><span class="line">        grow(elements.length);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//扩容</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">grow</span><span class="params">(<span class="keyword">int</span> oldCapacity)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> newCapacity = oldCapacity + (oldCapacity&gt;&gt;<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span>(newCapacity - oldCapacity &lt; <span class="number">0</span>)&#123;</span><br><span class="line">        newCapacity = DEFAULT_CAPACITY;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(newCapacity - MAX_ARRAY_SIZE &gt; <span class="number">0</span>)&#123;</span><br><span class="line">        newCapacity = hugeCapacity(newCapacity);</span><br><span class="line">    &#125;</span><br><span class="line">    elements = Arrays.copyOf(elements, newCapacity);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">hugeCapacity</span><span class="params">(<span class="keyword">int</span> newCapacity)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (newCapacity&gt;MAX_ARRAY_SIZE)?Integer.MAX_VALUE:newCapacity;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="基于链表的链式栈的实现">5.2.3 基于链表的链式栈的实现</h4>
+<p>上一小节我们手动实现了基于数组的顺序栈，这一小节中我们来实现一下基于链表的链式栈，基于链表的栈跟基于数组的顺序栈有一个很大的区别就是链式栈天生就具备动态扩容的特点。</p>
+<p>我们知道链表中的每一个元素都可以称之为节点，因此我们先创建一个节点对象如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span></span>&#123;</span><br><span class="line">    <span class="comment">// 前驱节点</span></span><br><span class="line">    <span class="keyword">public</span> Node prev;</span><br><span class="line">    <span class="comment">// 节点数据</span></span><br><span class="line">    <span class="keyword">private</span> Object data;</span><br><span class="line">    <span class="comment">// 后继节点</span></span><br><span class="line">    <span class="keyword">private</span>  Node next;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Node</span><span class="params">(Node prev, Object data, Node next)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.prev = prev;</span><br><span class="line">        <span class="keyword">this</span>.data = data;</span><br><span class="line">        <span class="keyword">this</span>.next = next;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">getData</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来实现一个链式栈，提供出栈和入栈操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LinkedListStack</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 栈大小</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> size;</span><br><span class="line">    <span class="comment">// 存储链表尾结点</span></span><br><span class="line">    <span class="keyword">private</span> Node tail;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LinkedListStack</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.tail = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 入栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">push</span><span class="params">(Object data)</span></span>&#123;</span><br><span class="line">        Node newNode = <span class="keyword">new</span> Node(tail, data, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">if</span>(size &gt; <span class="number">0</span>)&#123;</span><br><span class="line">            tail.next = newNode;</span><br><span class="line">        &#125;</span><br><span class="line">        tail = newNode;</span><br><span class="line">        size++;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 出栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">pop</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>((size-<span class="number">1</span>)&lt;<span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        Object data = tail.getData();</span><br><span class="line">        tail = tail.prev;</span><br><span class="line">        <span class="keyword">if</span>(tail != <span class="keyword">null</span>)&#123;</span><br><span class="line">            tail.next = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        size--;</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从以上的实现我们可以看出，采用的是双向链表来实现的链式栈，入栈和出栈操作虽然都很快速，但是由于双向链表需要额外的存储空间来存储前驱指针，因此这段程序在空间资源的节省上显得力度不够，所以想能不能不用双向链表而只用单向链表来解决这个问题呢？</p>
+<p>首先改造我们的节点对象，每个节点对象中只存储数据和next指针，并且上面的实现我们是单独创建的节点对象，那现在我们将节点对象声明为栈的内部类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StackBasedOnLinkedList</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span></span>&#123;</span><br><span class="line">        <span class="comment">// 节点数据</span></span><br><span class="line">        <span class="keyword">private</span> Object data;</span><br><span class="line">        <span class="comment">// 后继节点</span></span><br><span class="line">        <span class="keyword">private</span>  Node next;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Node</span><span class="params">(Object data, Node next)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.data = data;</span><br><span class="line">            <span class="keyword">this</span>.next = next;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Object <span class="title">getData</span><span class="params">()</span></span>&#123;</span><br><span class="line">            <span class="keyword">return</span> data;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 栈大小</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> size;</span><br><span class="line">    <span class="comment">// 存储链头结点</span></span><br><span class="line">    <span class="keyword">private</span> Node head;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">StackBasedOnLinkedList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.head = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 入栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">push</span><span class="params">(Object data)</span></span>&#123;</span><br><span class="line">        Node newNode = <span class="keyword">new</span> Node(data, head);</span><br><span class="line">        head = newNode;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 出栈</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">pop</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(head == <span class="keyword">null</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Node topNode = head;</span><br><span class="line">        head = head.next;</span><br><span class="line">        <span class="keyword">return</span> topNode.data;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        StackBasedOnLinkedList stack = <span class="keyword">new</span> StackBasedOnLinkedList();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; i++) &#123;</span><br><span class="line">            stack.push(i+<span class="string">&quot;&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;第&quot;</span>+(i+<span class="number">1</span>)+<span class="string">&quot;次入栈，入栈值为：&quot;</span>+i);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">8</span>; i++) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;取出的结果为：&quot;</span> + stack.pop());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过测试我们发现，基于单链表实现的栈和使用双链表实现的链式栈在功能上都一样，但是基于单链表实现的链式栈很明显更节约内存空间。</p>
+<p>以上内容就是我们自己手动编程来实现的栈。</p>
+<h3 id="栈的应用">5.3 栈的应用</h3>
+<h4 id="stack源码分析">5.3.1 Stack源码分析</h4>
+<p>首先写一小段测试代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StackDemo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 创建栈对象</span></span><br><span class="line">        Stack stack = <span class="keyword">new</span> Stack();</span><br><span class="line">        <span class="comment">// 数据入栈</span></span><br><span class="line">        stack.push(<span class="string">&quot;xyc&quot;</span>);</span><br><span class="line">        stack.push(<span class="string">&quot;zcc&quot;</span>);</span><br><span class="line">        <span class="comment">// 数据出栈</span></span><br><span class="line">        Object item = stack.pop();</span><br><span class="line">        System.out.println(item);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>栈的创建和元素入栈：</strong></p>
+<p>我们先查看栈的构造函数如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Stack</span>&lt;<span class="title">E</span>&gt; <span class="keyword">extends</span> <span class="title">Vector</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates an empty Stack.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Stack</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>是空实现，并没有其他操作，接下来断点调试元素入栈的push方法，push方法的实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> E <span class="title">push</span><span class="params">(E item)</span> </span>&#123;</span><br><span class="line">    addElement(item);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> item;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看Stack的父类Vectory，相关的属性和方法罗列如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Vector</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">AbstractList</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">RandomAccess</span>, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">	<span class="keyword">protected</span> Object[] elementData;</span><br><span class="line">	<span class="keyword">protected</span> <span class="keyword">int</span> elementCount;</span><br><span class="line">	<span class="keyword">protected</span> <span class="keyword">int</span> capacityIncrement;  <span class="comment">// 增长因子</span></span><br><span class="line">	</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">addElement</span><span class="params">(E obj)</span> </span>&#123;</span><br><span class="line">        modCount++;</span><br><span class="line">        ensureCapacityHelper(elementCount + <span class="number">1</span>);</span><br><span class="line">        elementData[elementCount++] = obj;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">ensureCapacityHelper</span><span class="params">(<span class="keyword">int</span> minCapacity)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// overflow-conscious code</span></span><br><span class="line">        <span class="keyword">if</span> (minCapacity - elementData.length &gt; <span class="number">0</span>)</span><br><span class="line">            grow(minCapacity);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MAX_ARRAY_SIZE = Integer.MAX_VALUE - <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">grow</span><span class="params">(<span class="keyword">int</span> minCapacity)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// overflow-conscious code</span></span><br><span class="line">        <span class="keyword">int</span> oldCapacity = elementData.length;</span><br><span class="line">        <span class="keyword">int</span> newCapacity = oldCapacity + ((capacityIncrement &gt; <span class="number">0</span>) ?</span><br><span class="line">                                         capacityIncrement : oldCapacity);</span><br><span class="line">        <span class="keyword">if</span> (newCapacity - minCapacity &lt; <span class="number">0</span>)</span><br><span class="line">            newCapacity = minCapacity;</span><br><span class="line">        <span class="keyword">if</span> (newCapacity - MAX_ARRAY_SIZE &gt; <span class="number">0</span>)</span><br><span class="line">            newCapacity = hugeCapacity(minCapacity);</span><br><span class="line">        elementData = Arrays.copyOf(elementData, newCapacity);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>断点调试结果如图：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/Stack源码分析1-栈的创建和元素入栈.png" alt="Stack源码分析1-栈的创建和元素入栈"></p>
+<p>从调试结果可知，Stack底层的实现思路和我们自己手动实现的基于数组的顺序栈的思路是一致的。</p>
+<p><strong>元素出栈：</strong></p>
+<p>分析完元素的入栈操作之后我们接着来分析元素的出栈操作，首先我们罗列出元素出栈的相关方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> E <span class="title">pop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    E       obj;</span><br><span class="line">    <span class="keyword">int</span>     len = size();  <span class="comment">// 调用父类Vector的方法</span></span><br><span class="line"></span><br><span class="line">    obj = peek();</span><br><span class="line">    removeElementAt(len - <span class="number">1</span>);  <span class="comment">// 调用的是父类的方法</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> E <span class="title">peek</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span>     len = size();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (len == <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> EmptyStackException();</span><br><span class="line">    <span class="keyword">return</span> elementAt(len - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>断点调试结果如下图：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/Stack源码分析2-元素出栈.png" alt="Stack源码分析2-元素出栈"></p>
+<p>从调试结果可知，元素出栈就是将数组的最后元素取出并将数组最后一个位置置为null，相当于将元素从数组中移除并返回。</p>
+<h4 id="思考">5.3.2 思考</h4>
+<p>学习完“栈”这个数据结构之后我们要思考一个问题，我们能用栈来做什么呢？在实际的编程过程中哪些地方能用得到栈这个数据结构呢？</p>
+<p>众所周知，浏览器有一个前进和后退的功能，当我们依次访问完一连串页面A-B-C之后，点击浏览器的后退按钮，就可以查看之前浏览过的B页面，在点击后退可以浏览之前的A页面，然后点击前进按钮又可以查看B页面，再次点击可以查看C页面，但是如果你回退到页面B后又点击了新的页面D，那就再无法通过回退和前进功能查看页面C了，假设你是Chrome浏览器的研发工程师，你如何来实现这个功能？</p>
+<p>至此，栈这部分的知识我们就学习完了，接下来我们进入队列的学习。</p>
+<h2 id="队列">6. 队列</h2>
+<h3 id="概念-3">6.1 概念</h3>
+<p>队列的概念非常容易理解，我们拿日常生活中的一个场景来举例说明，我们去车站的窗口买票，那就要排队，那先来的人就先买，后到的人就后买，先来的人排到队头，后来的人排在队尾，不允许插队，先进先出，这就是典型的队列。队列先进先出的特点英文表示为：First In First Out即<strong>FIFO</strong>，为了更好的理解队列这种数据结构，我们以一幅图的形式来表示，并且我们将队列的特点和栈进行比较，如下：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/队列结构.PNG" alt="队列结构"></p>
+<p>从图中我们可以发现，队列和栈一样都属于一种操作受限的线性表，栈只允许在一端进行操作，分别是入栈push()和出栈pop()，而队列跟栈很相似，支持的操作也有限，最基本的两个操作一个叫入队列<strong>enqueue()</strong>，将数据插入到队列尾部，另一个叫出队列<strong>dequeue()</strong>，从队列头部取出一个数据。</p>
+<p>队列的概念很好理解，基本操作也很容易掌握。作为一种非常基础的数据结构，队列的应用也非常广泛，特别是一些具有某些额外特性的队列，比如循环队列、阻塞队列、并发队列。它们在很多偏底层系统、框架、中间件的开发中，起着关键性的作用。比如高性能队列Disruptor[dɪsˈrʌptər]、Linux环形缓存都用到了循环并发队列，在java中，concurrent并发包利用ArrayBlockingQueue来实现公平锁等。</p>
+<h3 id="常见队列及实现">6.2 常见队列及实现</h3>
+<p>在这节中我们要介绍几种常见的队列：顺序队列，链式队列，循环队列，阻塞队列，并发队列等，并且会针对其中某些队列作手动实现。</p>
+<h4 id="顺序队列的实现">6.2.1 顺序队列的实现</h4>
+<p>跟栈一样，队列可以用数组来实现，也可以用链表来实现。用数组实现的栈叫作<strong>顺序栈</strong>，用链表实现的栈叫作<strong>链式栈</strong>。同样，用数组实现的队列叫作<strong>顺序队列</strong>，用链表实现的队列叫作<strong>链式队列</strong>。</p>
+<p>我们先来看看基于数组实现的顺序队列：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ArrayQueue</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 存储数据的数组</span></span><br><span class="line">    <span class="keyword">private</span> Object[] elements;</span><br><span class="line">    <span class="comment">// 队列大小</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> size;</span><br><span class="line">    <span class="comment">// 默认队列容量</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> DEFAULT_CAPACITY = <span class="number">10</span>;</span><br><span class="line">    <span class="comment">// 队列头指针</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> head;</span><br><span class="line">    <span class="comment">// 队列尾指针</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> tail;</span><br><span class="line">    <span class="comment">// 队列最多元素</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> MAX_ARRAY_SIZE = Integer.MAX_VALUE - <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 默认构造函数 初始化大小为10的队列</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ArrayQueue</span><span class="params">()</span></span>&#123;</span><br><span class="line">        elements = <span class="keyword">new</span> Object[DEFAULT_CAPACITY];</span><br><span class="line">        initPointer(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 通过传入的容量大小创建队列</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ArrayQueue</span><span class="params">(<span class="keyword">int</span> capacity)</span></span>&#123;</span><br><span class="line">        elements = <span class="keyword">new</span> Object[capacity];</span><br><span class="line">        initPointer(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化队列头尾指针</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initPointer</span><span class="params">(<span class="keyword">int</span> head, <span class="keyword">int</span> tail)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.head = head;</span><br><span class="line">        <span class="keyword">this</span>.tail = tail;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 元素入队列</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">enqueue</span><span class="params">(Object element)</span></span>&#123;</span><br><span class="line">        ensureCapacityHelper();</span><br><span class="line">        elements[tail++]=element;  <span class="comment">//在尾指针处存入元素且尾指针后移</span></span><br><span class="line">        size++;  <span class="comment">//队列元素个数加1</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 容量确定</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">ensureCapacityHelper</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="comment">//尾指针已越过数组尾端</span></span><br><span class="line">        <span class="keyword">if</span>(tail==elements.length)&#123;</span><br><span class="line">            <span class="comment">//判断队列是否已满即判断数组中是否还有可用存储空间</span></span><br><span class="line">            <span class="comment">//if(size&lt;elements.length)&#123;</span></span><br><span class="line">                <span class="comment">//扩容</span></span><br><span class="line">                <span class="keyword">if</span>(head == <span class="number">0</span>)&#123;</span><br><span class="line">                    grow(elements.length);</span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    <span class="comment">//进行数据搬移操作将数组中的数据依次向前挪动直至顶部</span></span><br><span class="line">                    <span class="keyword">for</span> (<span class="keyword">int</span> i=head;i&lt;tail;i++)&#123;</span><br><span class="line">                        elements[i-head]=elements[i];</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="comment">//数据搬移完后重新初始化头尾指针</span></span><br><span class="line">                    initPointer(<span class="number">0</span>, tail-head);</span><br><span class="line">                &#125;</span><br><span class="line">            <span class="comment">//&#125;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 扩容</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">grow</span><span class="params">(<span class="keyword">int</span> oldCapacity)</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> newCapacity = oldCapacity + (oldCapacity&gt;&gt;<span class="number">1</span>);</span><br><span class="line">        <span class="keyword">if</span>(newCapacity - oldCapacity&lt;<span class="number">0</span>)&#123;</span><br><span class="line">            newCapacity = DEFAULT_CAPACITY;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(newCapacity-MAX_ARRAY_SIZE &gt; <span class="number">0</span>)&#123;</span><br><span class="line">            newCapacity = hugeCapacity(newCapacity);</span><br><span class="line">        &#125;</span><br><span class="line">        elements = Arrays.copyOf(elements, newCapacity);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">hugeCapacity</span><span class="params">(<span class="keyword">int</span> newCapacity)</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (newCapacity&gt;MAX_ARRAY_SIZE)?Integer.MAX_VALUE:newCapacity;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//出队列</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">dequeue</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(head==tail)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        Object obj = elements[head++];</span><br><span class="line">        size--;</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获取队列元素个数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSize</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> size;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//测试代码</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    ArrayQueue queue =  <span class="keyword">new</span>  ArrayQueue(<span class="number">4</span>);</span><br><span class="line">    <span class="comment">//入队列</span></span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast1&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast2&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast3&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast4&quot;</span>);</span><br><span class="line">    <span class="comment">//此时入队列应该走扩容的逻辑</span></span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast5&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast6&quot;</span>);</span><br><span class="line">    <span class="comment">//出队列</span></span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    <span class="comment">//此时入队列应该走数据搬移逻辑</span></span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast7&quot;</span>);</span><br><span class="line">    <span class="comment">//出队列</span></span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    <span class="comment">//入队列</span></span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast8&quot;</span>);</span><br><span class="line">    <span class="comment">//出队列</span></span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    <span class="comment">//入队列</span></span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcat9&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcat10&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcat11&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcat12&quot;</span>);</span><br><span class="line">    <span class="comment">//出队列</span></span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 结果：</span></span><br><span class="line"><span class="comment">// itcast1</span></span><br><span class="line"><span class="comment">// itcast2</span></span><br><span class="line"><span class="comment">// itcast3</span></span><br><span class="line"><span class="comment">// itcast4</span></span><br><span class="line"><span class="comment">// itcast5</span></span><br><span class="line"><span class="comment">// itcast6</span></span><br><span class="line"><span class="comment">// itcast7</span></span><br><span class="line"><span class="comment">// itcast8</span></span><br><span class="line"><span class="comment">// null</span></span><br><span class="line"><span class="comment">// itcat9</span></span><br><span class="line"><span class="comment">// itcat10</span></span><br></pre></td></tr></table></figure>
+<p>通过控制台的输出结果我们可以发现基于数组的顺序队列确实满足先进先出的特点，接下来我们就一起来分析一下实现原理：</p>
+<p>对于栈来说，我们只需要一个栈顶指针就可以了。但是队列需要两个指针(数组下标)：一个是head指针，指向队头；一个是tail指针，指向队尾。每一次元素入队列操作，我们的tail指针就需要向后移动一位；每一次出队列操作，我们的head指针就要向后移动一位。</p>
+<p>但是当tail指针移动到数组末尾之后，由于入队列操作都是从数组尾部存入数据，那此时数组尾部已不能在插入数据了，我们就要根据情况采取不同的措施，第一种情况是数组中已经没有位置可以存储数据了那就要对数组进行扩容，第二种情况是数组中还有位置可以存储数据，只不过是数组尾端已不能再插入数据了，那此时就要将数组中的数据依次向前挪动，将数组尾部的位置空出来供入队列操作，详细的操作流程见下图：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/基于数组的队列的实现思路图.png" alt="基于数组的队列的实现思路图"></p>
+<p>那对于元素出队列来说，只要将head指针处的元素从数组中取出来，然后head指针后移即可，当然了如果head指针和tail指针如果重合了则表明队列中已经没有元素数据了此时直接返回null即可。</p>
+<h4 id="链式队列的实现">6.2.2 链式队列的实现</h4>
+<p>在上一小节中我们使用数组实现了一个队列，那在这一小节中我们使用链表来实现一个队列，通过之前的学习我们已经知道用链表实现的队列叫链式队列。</p>
+<p>基于链表的实现，我们同样需要两个指针：head指针和tail指针。它们分别指向链表的第一个结点和最后一个结点。如图所示，入队时，tail-&gt;next=new_node, tail =tail-&gt;next；出队时，head= head-&gt;next，如下图所示：</p>
+<p><img src="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a/队列用链表实现.PNG" alt="队列用链表实现"></p>
+<p>下面进行代码实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LinkedListQueue</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 队列元素个数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> size;</span><br><span class="line">    <span class="comment">// 头结点</span></span><br><span class="line">    <span class="keyword">private</span> Node head;</span><br><span class="line">    <span class="comment">// 头结点</span></span><br><span class="line">    <span class="keyword">private</span> Node tail;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span></span>&#123;</span><br><span class="line">        <span class="comment">// 节点数据</span></span><br><span class="line">        <span class="keyword">private</span> Object data;</span><br><span class="line">        <span class="comment">// 后继节点</span></span><br><span class="line">        <span class="keyword">private</span>  Node next;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Node</span><span class="params">(Object data, Node next)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.data = data;</span><br><span class="line">            <span class="keyword">this</span>.next = next;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Object <span class="title">getData</span><span class="params">()</span></span>&#123;</span><br><span class="line">            <span class="keyword">return</span> data;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LinkedListQueue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.head = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">this</span>.tail = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 入队列</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">enqueue</span><span class="params">(Object data)</span></span>&#123;</span><br><span class="line">        Node newNode = <span class="keyword">new</span> Node(data, <span class="keyword">null</span>);</span><br><span class="line">        <span class="keyword">if</span>(tail == <span class="keyword">null</span>)&#123;</span><br><span class="line">            tail = newNode;</span><br><span class="line">            head = newNode;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            tail.next = newNode;</span><br><span class="line">            tail = newNode;</span><br><span class="line">        &#125;</span><br><span class="line">        size++;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 出队列</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">dequeue</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(head==<span class="keyword">null</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        Object data = head.data;</span><br><span class="line">        head = head.next;</span><br><span class="line">        <span class="keyword">if</span>(head==<span class="keyword">null</span>)&#123;</span><br><span class="line">            tail = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        size--;</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取队列size</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSize</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> size;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    LinkedListQueue queue =  <span class="keyword">new</span>  LinkedListQueue();</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast1&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast2&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast3&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast4&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast5&quot;</span>);</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast6&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast7&quot;</span>);</span><br><span class="line">    queue.enqueue(<span class="string">&quot;itcast8&quot;</span>);</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">    System.out.println(queue.dequeue());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 结果：</span></span><br><span class="line"><span class="comment">// null</span></span><br><span class="line"><span class="comment">// itcast1</span></span><br><span class="line"><span class="comment">// itcast2</span></span><br><span class="line"><span class="comment">// itcast3</span></span><br><span class="line"><span class="comment">// itcast4</span></span><br><span class="line"><span class="comment">// itcast5</span></span><br><span class="line"><span class="comment">// null</span></span><br><span class="line"><span class="comment">// itcast6</span></span><br><span class="line"><span class="comment">// itcast7</span></span><br><span class="line"><span class="comment">// itcast8</span></span><br></pre></td></tr></table></figure>
+<p>通过控制台的输出结果我们可以发现基于链表的链式队列也满足FIFO的特点。</p>
+<h4 id="独立思考">6.2.3 独立思考</h4>
+<p>在这个实现中我们发现，循环队列满的时候数组汇总其实还是有一个位置可以进行数据的存储的，也就是说当下的循环队列的实现方式会浪费一个存储空间，那有没有什么更好的解决方案呢？</p>
+<h3 id="队列的应用">6.3 队列的应用</h3>
+<p>实际开发中哪些地方用到队列这种数据结构？</p>
+<h4 id="队列的应用场景">6.3.1 队列的应用场景</h4>
+<p>首先我们得回顾本章开始所讲到的队列的特点：先进先出<strong>(FIFO)</strong>，一般情况下，如果是对一些及时消息的处理，并且处理时间很短的情况下是不需要队列的，直接阻塞式的方法调用就可以了。但是如果在消息处理的时候特别费时间，这个时候如果有新消息来了，就只能处于阻塞状态，造成用户等待。这个时候便需要引入队列了。当接收到消息后，先把消息放入队列中，然后再用新的线程进行处理，这个时候就不会有消息阻塞了。所以队列用来存放等待处理元素的集合，这种场景一般用于缓冲、并发访问，及时消息通信，分布式消息队列等。</p>
+<h4 id="课后思考">6.3.2 课后思考</h4>
+<p>我们知道，CPU资源是有限的，任务的处理速度与线程个数并不是线性正相关。相反，过多的线程反而会导致CPU频繁切换，处理性能下降。所以，线程池的大小一般都是综合考虑要处理任务的特点和硬件环境，来事先设置的。当我们向固定大小的线程池中请求一个线程时，如果线程池中没有空闲资源了，这个时候线程池如何处理这个请求？是拒绝请求还是排队请求？各种处理策略又是怎么实现的呢？</p>
+<h1 id="总结">7. 总结</h1>
+<ul>
+<li><p>数组</p>
+<p>数组是一种线性表数据结构，它用一组连续的内存空间，来存储一组具有相同类型的数据。数组通过下标来访问元素，数组访问时可以通过寻址公式快速定位元素位置，但是插入和删除操作为了保证数组的连续性要进行很多数据的搬移操作</p></li>
+<li><p>链表</p>
+<p>链表（Linked list）是一种物理存储单元上非连续、非顺序的存储结构，数据元素的逻辑顺序是通过链表中的指针链接次序实现的。链表由一系列结点（链表中每一个元素称为结点）组成，结点可以在运行时动态生成。每个结点包括两个部分：一个是存储数据元素的数据域，另一个是存储下一个结点地址的指针域。链表在进行元素的插入和删除操作时的效率高，但是链表在进行元素获取时的效率低，而链表又分为单链表，双向链表，循环链表，双向循环链表等。</p></li>
+<li><p>栈</p>
+<p>栈满足先进后出，后进先出即LIFO，属于一种操作受限的线性表，只允许在一端进行元素的插入和删除，分别是入栈和出栈，时间复杂度都是O(1)，栈可以基于数组实现也可以基于链表实现，分别是顺序栈和链式栈。</p></li>
+<li><p>队列</p>
+<p>队列满足先进先出的特点即FIFO，队列跟栈一样都属于操作受限的线性表，只不过队列是只允许在队列头获取元素，在队列尾插入元素，分别叫入队列和出队列，当然队列也可以基于数组和链表来实现，分别叫顺序队列和链式队列，在队列中还有一种循环队列可以解决顺序队列需要频繁搬移数据的问题。</p></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+	
+	<div>
+		
+			<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+
+<div>
+    
+       <div style="text-align:center;color:#bfbfbf;font-size:16px;">
+             <span>--- 本文结束 </span>
+             <i class="fa fa-thumbs-o-up"></i>
+             <span> 感谢阅读 ---</span>
+       </div>
+    
+</div>
+		
+	</div>
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag"># 学习笔记</a>
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag"># 数据结构</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/23/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-b/" rel="prev" title="数据结构：学习笔记-b">
+      <i class="fa fa-chevron-left"></i> 数据结构：学习笔记-b
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/25/Java%E9%9B%86%E5%90%88/Java%EF%BC%9ATreeMap%E7%B1%BB/" rel="next" title="Java：TreeMap类">
+      Java：TreeMap类 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-a"><span class="nav-text">数据结构：学习笔记-a</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BE%E7%A8%8B%E7%9B%AE%E6%A0%87"><span class="nav-text">1. 课程目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A5%E9%97%A8%E6%A6%82%E8%BF%B0"><span class="nav-text">2. 入门概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%92%8C%E7%AE%97%E6%B3%95"><span class="nav-text">2.1 什么是数据结构和算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E8%A1%A8%E6%A6%82%E5%BF%B5"><span class="nav-text">2.2 线性表概念</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E7%BB%84"><span class="nav-text">3. 数组</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-text">3.1 概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E7%BB%93%E6%9E%84%E5%92%8C%E7%89%A9%E7%90%86%E7%BB%93%E6%9E%84"><span class="nav-text">3.2 逻辑结构和物理结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E7%BB%84%E5%85%83%E7%B4%A0%E7%9A%84%E8%AE%BF%E9%97%AE"><span class="nav-text">3.2.1 数组元素的访问</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E7%BB%84%E4%B8%8B%E8%A1%A8%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BB%8E0%E5%BC%80%E5%A7%8B"><span class="nav-text">3.2.2 数组下表为什么从0开始</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E7%BB%84%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-text">3.3 数组的特点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%AB%98%E6%95%88%E7%9A%84%E9%9A%8F%E6%9C%BA%E8%AE%BF%E9%97%AE"><span class="nav-text">3.3.1 高效的随机访问</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%8E%E6%95%88%E6%8F%92%E5%85%A5%E5%92%8C%E5%88%A0%E9%99%A4"><span class="nav-text">3.3.2 低效插入和删除</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E7%BB%84%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text">3.4 数组的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#arraylist%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-text">3.4.1 ArrayList源码分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%85%83%E7%B4%A0"><span class="nav-text">3.3.4 获取元素</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%93%BE%E8%A1%A8"><span class="nav-text">4. 链表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5-1"><span class="nav-text">4.1 概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84"><span class="nav-text">4.2 存储结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%93%BE%E8%A1%A8%E7%B1%BB%E5%9E%8B"><span class="nav-text">4.3 链表类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8D%95%E9%93%BE%E8%A1%A8"><span class="nav-text">4.3.1 单链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF%E9%93%BE%E8%A1%A8"><span class="nav-text">4.3.2 循环链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8"><span class="nav-text">4.3.3 双向链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8C%E5%90%91%E5%BE%AA%E7%8E%AF%E9%93%BE%E8%A1%A8"><span class="nav-text">4.3.4 双向循环链表</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%93%BE%E8%A1%A8%E5%92%8C%E6%95%B0%E7%BB%84%E6%80%A7%E8%83%BD%E6%AF%94%E8%BE%83"><span class="nav-text">4.4 链表和数组性能比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%93%BE%E8%A1%A8%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text">4.5 链表的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#linkedlist%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-text">4.5.1 LinkedList源码分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%B9%E5%99%A8%E6%9E%84%E5%BB%BA%E5%8F%8A%E6%B7%BB%E5%8A%A0%E5%85%83%E7%B4%A0"><span class="nav-text">4.5.2 容器构建及添加元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E5%85%83%E7%B4%A0-1"><span class="nav-text">4.5.3 获取元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%A2%E8%AF%95%E9%A2%98"><span class="nav-text">4.5.4 面试题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88"><span class="nav-text">5. 栈</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5-2"><span class="nav-text">5.1 概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">5.2 栈的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E6%95%B0%E7%BB%84%E9%A1%BA%E5%BA%8F%E6%A0%88%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">5.2.1 基于数组顺序栈的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%AF%E6%8C%81%E5%8A%A8%E6%80%81%E6%89%A9%E5%AE%B9%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%A0%88"><span class="nav-text">5.2.2 支持动态扩容的顺序栈</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E9%93%BE%E8%A1%A8%E7%9A%84%E9%93%BE%E5%BC%8F%E6%A0%88%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">5.2.3 基于链表的链式栈的实现</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text">5.3 栈的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#stack%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-text">5.3.1 Stack源码分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%9D%E8%80%83"><span class="nav-text">5.3.2 思考</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%9F%E5%88%97"><span class="nav-text">6. 队列</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5-3"><span class="nav-text">6.1 概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E9%98%9F%E5%88%97%E5%8F%8A%E5%AE%9E%E7%8E%B0"><span class="nav-text">6.2 常见队列及实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%BA%E5%BA%8F%E9%98%9F%E5%88%97%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">6.2.1 顺序队列的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%93%BE%E5%BC%8F%E9%98%9F%E5%88%97%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-text">6.2.2 链式队列的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%8B%AC%E7%AB%8B%E6%80%9D%E8%80%83"><span class="nav-text">6.2.3 独立思考</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%9F%E5%88%97%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-text">6.3 队列的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%98%9F%E5%88%97%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">6.3.1 队列的应用场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AF%BE%E5%90%8E%E6%80%9D%E8%80%83"><span class="nav-text">6.3.2 课后思考</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">7. 总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZhuCC"
+      src="/images/%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">ZhuCC</p>
+  <div class="site-description" itemprop="description">不急不躁。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">161</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">69</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+	  
+	  
+        <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+        <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+        <div class="widget-wrap">
+            <div id="myCanvasContainer" class="widget tagcloud">
+                <canvas width="250" height="250" id="resCanvas" style="width=100%">
+                    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anaconda/" rel="tag">Anaconda</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GPU/" rel="tag">GPU</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTP/" rel="tag">HTTP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IO/" rel="tag">IO</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDBC/" rel="tag">JDBC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDK/" rel="tag">JDK</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">48</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E8%AF%AD%E6%B3%95/" rel="tag">Java语法</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/K%E8%BF%91%E9%82%BB/" rel="tag">K近邻</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LeetCode/" rel="tag">LeetCode</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pytorch/" rel="tag">Pytorch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringMVC/" rel="tag">SpringMVC</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP-IP/" rel="tag">TCP/IP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TensorFlow/" rel="tag">TensorFlow</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadLocal/" rel="tag">ThreadLocal</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TortoiseGit/" rel="tag">TortoiseGit</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Typora/" rel="tag">Typora</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/" rel="tag">Ubuntu</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nvidia/" rel="tag">nvidia</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/" rel="tag">决策树</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98/" rel="tag">分类问题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98/" rel="tag">刷题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/" rel="tag">博客搭建</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%82%E8%80%83%E6%96%87%E4%BB%B6/" rel="tag">参考文件</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a><span class="tag-list-count">72</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag">并发</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/" rel="tag">开发框架</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%81%E4%B9%85%E5%B1%82%E6%A1%86%E6%9E%B6/" rel="tag">持久层框架</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E6%8E%A8%E5%AF%BC/" rel="tag">数学推导</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97/" rel="tag">数据清洗</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A5%E5%BF%97%E6%A1%86%E6%9E%B6/" rel="tag">日志框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" rel="tag">特征选择</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="tag">环境配置</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag">目标检测</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" rel="tag">线性回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%81%9A%E7%B1%BB/" rel="tag">聚类</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%A8%E7%A4%BA%E5%B1%82/" rel="tag">表示层</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E8%B7%AF/" rel="tag">计算机网路</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag">读书笔记</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="tag">贝叶斯</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8/" rel="tag">软件使用</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/" rel="tag">逻辑回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E5%90%88%E7%B1%BB/" rel="tag">集合类</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" rel="tag">集成学习</a><span class="tag-list-count">1</span></li></ul>
+                </canvas>
+            </div>
+        </div>
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZhuCC</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">2.6m</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">39:26</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : '3it0tVBbppFeFBVa8QgB3vxM-gzGzoHsz',
+      appKey     : '9VtnMWSrhAtC1pSRaA4Rivx9',
+      placeholder: "请多多指教~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

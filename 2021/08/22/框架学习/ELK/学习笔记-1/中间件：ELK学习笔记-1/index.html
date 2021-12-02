@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Mario.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Mario.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="很早之前粗略的学习过Lucene和Elasticsearch，然后最近实习过程中需要用到一些ES的基础操作，虽说使用起来没啥问题，但还是想稍微系统的学习一下，也能在秋招的时候稍微说道说道。 在 bilibili 上搜了一个课程，课程地址：黑马：ELK高级搜索，跟着视频也做了些笔记，总的分了7篇，此为1&#x2F;7篇，其余地址如下：  中间件：ELK学习笔记-1 中间件：ELK学习笔记-2 中间件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="中间件：ELK学习笔记-1">
+<meta property="og:url" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/index.html">
+<meta property="og:site_name" content="贤余超">
+<meta property="og:description" content="很早之前粗略的学习过Lucene和Elasticsearch，然后最近实习过程中需要用到一些ES的基础操作，虽说使用起来没啥问题，但还是想稍微系统的学习一下，也能在秋招的时候稍微说道说道。 在 bilibili 上搜了一个课程，课程地址：黑马：ELK高级搜索，跟着视频也做了些笔记，总的分了7篇，此为1&#x2F;7篇，其余地址如下：  中间件：ELK学习笔记-1 中间件：ELK学习笔记-2 中间件">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/ElasticCloud.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/ES简介1.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/ES简介2.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/可扩展性.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/相关度.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/弹性.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/开发客户端.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/DevTools界面.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/集群监控界面.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/集群状态界面.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/PostmanGet.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/PostmanGet查询集群状态.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/Head插件.png">
+<meta property="og:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/head插件成功连接ES.png">
+<meta property="article:published_time" content="2021-08-22T02:24:10.000Z">
+<meta property="article:modified_time" content="2021-08-22T02:24:10.000Z">
+<meta property="article:author" content="ZhuCC">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="中间件">
+<meta property="article:tag" content="开发框架">
+<meta property="article:tag" content="ELK">
+<meta property="article:tag" content="Elasticsearck">
+<meta property="article:tag" content="全文检索">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/ElasticCloud.png">
+
+<link rel="canonical" href="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>中间件：ELK学习笔记-1 | 贤余超</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+	<a target="_blank" rel="noopener" href="https://github.com/zhuChengChao" class="github-corner" aria-label="View source on GitHub">
+	<svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+	<path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+	<path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+	<path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+	</svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">贤余超</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一位底层码农 :-)</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">80</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">180</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="ZhuCC">
+      <meta itemprop="description" content="不急不躁。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贤余超">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          中间件：ELK学习笔记-1
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-22 10:24:10" itemprop="dateCreated datePublished" datetime="2021-08-22T10:24:10+08:00">2021-08-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/" itemprop="url" rel="index"><span itemprop="name">中间件</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index"><span itemprop="name">开发框架</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>很早之前粗略的学习过Lucene和Elasticsearch，然后最近实习过程中需要用到一些ES的基础操作，虽说使用起来没啥问题，但还是想稍微系统的学习一下，也能在秋招的时候稍微说道说道。</p>
+<p>在 bilibili 上搜了一个课程，课程地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Nt4y1m7qL">黑马：ELK高级搜索</a>，跟着视频也做了些笔记，总的分了7篇，此为1/7篇，其余地址如下：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/">中间件：ELK学习笔记-1</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-2/">中间件：ELK学习笔记-2</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-3/">中间件：ELK学习笔记-3</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-4/">中间件：ELK学习笔记-4</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2021/08/29/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-5/">中间件：ELK学习笔记-5</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2021/08/29/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-6/">中间件：ELK学习笔记-6</a></li>
+<li><a target="_blank" rel="noopener" href="https://xianyuchao.cn/2021/08/29/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-7/">中间件：ELK学习笔记-7</a></li>
+</ul>
+<blockquote>
+<p>学的很草率...空了再来完善<span class="emoji" data-emoji="cry">😢</span></p>
+</blockquote>
+<span id="more"></span>
+<h1 id="中间件elk学习笔记-1">中间件：ELK学习笔记-1</h1>
+<h2 id="概述">1. 概述</h2>
+<p>ELK 是包含但不限于 Elasticsearch（ES）、Logstash、Kibana 三个开源软件的组成的一个整体。这三个软件合成 ELK。是用于数据抽取 Logstash、搜索分析 Elasticsearch、数据展现 Kibana 的一整套解决方案，所以也称作 ELK Stack。</p>
+<p>该教程分别对三个组件进行详细介绍，尤其是 Elasticsearch，因为它是 ELK 的核心。从 ES 底层对文档、索引、搜索、聚合、集群进行介绍，从搜索和聚合分析实例来展现 ES 的魅力。Logstash 从内部如何采集数据到指定地方来展现它数据采集的功能。Kibana 则从数据绘图展现数据可视化的功能。</p>
+<h2 id="elastic-stack简介">2. Elastic Stack简介</h2>
+<h3 id="简介">2.1 简介</h3>
+<p>ELK 是一个免费开源的日志分析架构技术栈总称，官网https://www.elastic.co/cn。包含三大基础组件，分别是Elasticsearch、Logstash、Kibana。但实际上ELK不仅仅适用于日志分析，它还可以支持其它任何数据搜索、分析和收集的场景，日志分析和收集只是更具有代表性，并非唯一性。</p>
+<p>随着 ELK 的发展，又有新成员Beats、Elastic Cloud 的加入，所以就形成了 Elastic Stack。所以说，ELK 是旧的称呼，Elastic Stack是新的名字。</p>
+<h3 id="特色">2.2 特色</h3>
+<ul>
+<li><p>处理方式灵活：ES 是目前最流行的<strong>准实时全文检索引擎</strong>，具有高速检索大数据的能力。</p></li>
+<li><p>配置简单：安装 ELK 的每个组件，仅需配置每个组件的一个配置文件即可。修改处不多，因为大量参数已经默认配在系统中，修改想要修改的选项即可。</p></li>
+<li><p>接口简单：采用 json 形式 Restful API 接受数据并响应，无关语言。</p></li>
+<li><p>性能高效：ES 基于优秀的全文搜索技术 Lucene，采用<strong>倒排索引</strong>，可以轻易地在百亿级别数据量下，搜索出想要的内容，并且是秒级响应。</p></li>
+<li><p>灵活扩展：ES 和 Logstash 都可以根据集群规模线性拓展，ES 内部自动实现集群协作。</p></li>
+<li><p>数据展现华丽：Kibana 作为前端展现工具，图表华丽，配置简单。</p></li>
+</ul>
+<h3 id="组件介绍">2.3 组件介绍</h3>
+<p><strong>Elasticsearch</strong></p>
+<p>ES 是使用 Java 开发，基于Lucene、分布式、通过 Restful 方式进行交互的近实时搜索平台框架。它的特点有：分布式，零配置，自动发现，索引自动分片，索引副本机制，Restful 风格接口，多数据源，自动搜索负载等。</p>
+<p><strong>Logstash</strong></p>
+<p>Logstash 基于 Java 开发，是一个数据抽取转化工具。一般工作方式为 C/S 架构，Client 端安装在需要收集信息的主机上，Server 端负责将收到的各节点日志进行过滤、修改等操作在一并发往 Elasticsearch 或其他组件上去。</p>
+<p><strong>Kibana</strong></p>
+<p>Kibana 基于 node.js，也是一个开源和免费的可视化工具。Kibana 可以为 Logstash 和 ElasticSearch 提供的日志分析友好的 Web 界面，可以汇总、分析和搜索重要数据日志。</p>
+<p><strong>Beats</strong></p>
+<p>Beats 平台集合了多种单一用途数据采集器。它们从成百上千或成千上万台机器和系统向 Logstash 或 Elasticsearch 发送数据。</p>
+<p>Beats 由如下组成:</p>
+<ul>
+<li><p>Packetbeat：轻量型网络数据采集器，用于深挖网线上传输的数据，了解应用程序动态。Packetbeat 是一款轻量型网络数据包分析器，能够将数据发送至 Logstash 或 Elasticsearch。其支持 ICMP (v4 and v6)、DNS、HTTP、MySQL、PostgreSQL、Redis、MongoDB、Memcache等协议。</p></li>
+<li><p>Filebeat：轻量型日志采集器。当您要面对成百上千、甚至成千上万的服务器、虚拟机和容器生成的日志时，请告别 SSH 吧。Filebeat 将为您提供一种轻量型方法，用于转发和汇总日志与文件，让简单的事情不再繁杂。</p></li>
+<li><p>Metricbeat ：轻量型指标采集器。Metricbeat 能够以一种轻量型的方式，输送各种系统和服务统计数据，从 CPU 到内存，从 Redis 到 Nginx，不一而足。可定期获取外部系统的监控指标信息，其可以监控、收集 Apache HTTP、HAProxy、MongoDB、MySQL、Nginx、PostgreSQL、Redis、System、Zookeeper等服务。</p></li>
+<li><p>Winlogbeat：轻量型 Windows 事件日志采集器。用于密切监控基于 Windows 的基础设施上发生的事件。Winlogbeat 能够以一种轻量型的方式，将 Windows 事件日志实时地流式传输至 Elasticsearch 和 Logstash。</p></li>
+<li><p>Auditbeat：轻量型审计日志采集器。收集您 Linux 审计框架的数据，监控文件完整性。Auditbeat 实时采集这些事件，然后发送到 Elastic Stack 其他部分做进一步分析。</p></li>
+<li><p>Heartbeat：面向运行状态监测的轻量型采集器。通过主动探测来监测服务的可用性。通过给定 URL 列表，Heartbeat 仅仅询问：网站运行正常吗？Heartbeat 会将此信息和响应时间发送至 Elastic 的其他部分，以进行进一步分析。</p></li>
+<li><p>Functionbeat：面向云端数据的无服务器采集器。在作为一项功能部署在云服务提供商的功能即服务 (FaaS) 平台上后，Functionbeat 即能收集、传送并监测来自您的云服务的相关数据。</p></li>
+</ul>
+<p><strong>Elastic Cloud</strong></p>
+<p>基于 Elasticsearch 的软件即服务 SaaS 解决方案。通过 Elastic 的官方合作伙伴使用托管的 Elasticsearch 服务。</p>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/ElasticCloud.png" alt="ElasticCloud" style="zoom:67%;"></p>
+<h2 id="elasticsearch是什么">3. Elasticsearch是什么</h2>
+<h3 id="搜索是什么">3.1 搜索是什么</h3>
+<p>概念：用户输入想要的关键词，返回含有该关键词的所有信息。</p>
+<p>场景：</p>
+<ol type="1">
+<li>互联网搜索：谷歌、百度、各种新闻首页</li>
+<li>站内搜索（垂直搜索）：企业 OA 查询订单、人员、部门；电商网站内部搜索商品（淘宝、京东）场景。</li>
+</ol>
+<h3 id="数据库搜索弊端">3.2 数据库搜索弊端</h3>
+<p>站内搜索（垂直搜索）：数据量小，简单搜索，可以使用数据库。</p>
+<p>问题出现：</p>
+<ol type="1">
+<li><p>存储问题：电商网站商品上亿条时，涉及到单表数据过大必须拆分表，数据库磁盘占用过大必须分库（MyCat）。</p></li>
+<li><p>性能问题：解决上面问题后，查询“笔记本电脑”等关键词时，上亿条数据的商品名字段逐行扫描，性能跟不上。</p></li>
+<li><p>不能分词：如搜索“笔记本电脑”，只能搜索完全和关键词一样的数据，那么数据量小时，搜索“笔记电脑”，“电脑”数据要不要给用户。</p></li>
+</ol>
+<p><strong>互联网搜索，肯定不会使用数据库搜索。数据量太大。PB级。</strong></p>
+<h3 id="全文检索倒排索引lucene">3.3 全文检索&amp;倒排索引&amp;Lucene</h3>
+<p><strong>全文检索</strong>，倒排索引。数据存储时，进行分词建立 term 索引库。</p>
+<p>倒排索引源于实际应用中需要<strong>根据属性的值来查找记录</strong>。这种索引表中的每一项都包括一个属性值和具有该属性值的各记录的地址。由于不是由记录来确定属性值，而是由属性值来确定记录的位置，因而称为倒排索引(inverted index)。带有倒排索引的文件我们称为倒排索引文件，简称倒排文件(inverted file)。</p>
+<p><strong>Lucene</strong>：就是一个 jar 包，里面封装了全文检索的引擎、搜索的算法代码。开发时，引入 Lucene 的jar包，通过 API 开发搜索相关业务。底层会在磁盘建立索引库。</p>
+<h3 id="什么是es">3.4 什么是ES</h3>
+<p><strong>简介</strong></p>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/ES简介1.png" alt="ES简介1"></p>
+<p>官网：https://www.elastic.co/cn/products/elasticsearch</p>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/ES简介2.png" alt="ES简介2"></p>
+<p><strong>ES的功能</strong></p>
+<ul>
+<li><p>分布式的搜索引擎和数据分析引擎</p>
+<p>搜索：互联网搜索、电商网站站内搜索、OA系统查询</p>
+<p>数据分析：电商网站查询近一周哪些品类的图书销售前十；新闻网站，最近3天阅读量最高的十个关键词，舆情分析。</p></li>
+<li><p>全文检索，结构化检索，数据分析</p>
+<p>全文检索：搜索商品名称包含 Java 的图书 <code>select * from books where book_name like &quot;%java%&quot;</code></p>
+<p>结构化检索：搜索商品分类为 spring 的图书都有哪些，<code>select * from books where category_id='spring'</code></p>
+<p>数据分析：分析每一个分类下有多少种图书，<code>select category_id, count(*) from books group by category_id</code></p></li>
+<li><p>对海量数据进行近实时的处理</p>
+<p>分布式：ES自动可以将海量数据分散到多台服务器上去存储和检索，进行并行查询，提高搜索效率。相对的，Lucene是单机应用。</p>
+<p>近实时：数据库上亿条数据查询，搜索一次耗时几个小时，是批处理（batch-processing）。而es只需秒级即可查询海量数据，所以叫近实时。秒级。</p></li>
+</ul>
+<p><strong>ES的使用场景</strong></p>
+<p>国外：</p>
+<ul>
+<li><p>维基百科，类似百度百科，“网络七层协议”的维基百科，全文检索，高亮，搜索推荐</p></li>
+<li><p>Stack Overflow（国外的程序讨论论坛），相当于程序员的贴吧。遇到it问题去上面发帖，热心网友下面回帖解答。</p></li>
+<li><p>GitHub（开源代码管理），搜索上千亿行代码。</p></li>
+<li><p>电商网站，检索商品</p></li>
+<li><p>日志数据分析，Logstash采集日志，ES进行复杂的数据分析（ELK技术，ES+Logstash+Kibana）</p></li>
+<li><p>商品价格监控网站，用户设定某商品的价格阈值，当低于该阈值的时候，发送通知消息给用户，比如说订阅《java编程思想》的监控，如果价格低于27块钱，就通知我，我就去买。</p></li>
+<li><p>BI系统，商业智能（Business Intelligence）。大型连锁超市，分析全国网点传回的数据，分析各个商品在什么季节的销售量最好、利润最高。成本管理，店面租金、员工工资、负债等信息进行分析。从而部署下一个阶段的战略目标。</p></li>
+</ul>
+<p>国内：</p>
+<ul>
+<li><p>百度搜索，第一次查询，使用ES。</p></li>
+<li><p>OA、ERP系统站内搜索。</p></li>
+</ul>
+<p><strong>ES的特点</strong></p>
+<ul>
+<li><p>可拓展性：大型分布式集群（数百台服务器）技术，处理PB级数据，大公司可以使用。小公司数据量小，也可以部署在单机。大数据领域使用广泛。</p></li>
+<li><p>技术整合：将全文检索、数据分析、分布式相关技术整合在一起：Lucene（全文检索），商用的数据分析软件（BI软件），分布式数据库（MyCat）</p></li>
+<li><p>部署简单：开箱即用，很多默认配置不需关心，解压完成直接运行即可。拓展时，只需多部署几个实例即可，负载均衡、分片迁移集群内部自己实施。</p></li>
+<li><p>接口简单：使用 Restful API 经行交互，跨语言。</p></li>
+<li><p>功能强大：Elasticsearch 作为传统数据库的一个补充，提供了数据库所不不能提供的很多功能，如全文检索，同义词处理，相关度排名。</p></li>
+</ul>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/可扩展性.png" alt="可扩展性"></p>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/相关度.png" alt="相关度"></p>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/弹性.png" alt="弹性"></p>
+<h3 id="es核心概念">3.5 ES核心概念</h3>
+<h4 id="lucene和es的关系">3.5.1 Lucene和ES的关系</h4>
+<p>Lucene：最先进、功能最强大的搜索库，直接基于 Lucene 开发，非常复杂，API 复杂</p>
+<p>Elasticsearch：基于Lucene，封装了许多 Lucene 底层功能，提供简单易用的 Restful API接口和许多语言的客户端，如 Java 的高级客户端（Java High Level REST Client）和底层客户端（Java Low Level REST Client）</p>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/开发客户端.png" alt="开发客户端"></p>
+<blockquote>
+<p>起源：Shay Banon。2004年失业，陪老婆去伦敦学习厨师。失业在家帮老婆写一个菜谱搜索引擎。封装了 Lucene 的开源项目，compass。找到工作后，做分布式高性能项目，再封装 compass，写出了 Elasticsearch，使得 Lucene 支持分布式。</p>
+</blockquote>
+<h4 id="es-的核心概念">3.5.2 ES 的核心概念</h4>
+<ol type="1">
+<li><p><strong>NRT（Near Realtime）：近实时</strong>，体现在两方面：</p>
+<ol type="1">
+<li>写入数据时，过1秒才会被搜索到，因为内部在分词、录入索引。</li>
+<li>ES 搜索时：搜索和分析数据需要秒级出结果。</li>
+</ol></li>
+<li><p><strong>Cluster：集群</strong></p>
+<p>包含一个或多个启动着 ES 实例的机器群。通常一台机器起一个 ES 实例。同一网络下，集名一样的多个 ES 实例自动组成集群，自动均衡分片等行为。默认集群名为 “elasticsearch”。</p></li>
+<li><p><strong>Node：节点</strong></p>
+<p>每个 ES 实例称为一个节点。节点名自动分配，也可以手动配置。</p></li>
+<li><p><strong>Index：索引</strong></p>
+<p>包含一堆有相似结构的文档数据。</p>
+<p>索引创建规则：</p>
+<ul>
+<li><p>仅限小写字母</p></li>
+<li><p>不能包含 <code>\</code>、<code>/</code>、 <code>*</code>、<code>?</code>、<code>&quot;</code>、<code>&lt;</code>、<code>&gt;</code>、<code>|</code>、<code>#</code> 以及空格符等特殊符号</p></li>
+<li><p>从 7.0 版本开始不再包含冒号</p></li>
+<li><p>不能以 <code>-</code>、<code>_</code>或<code>+</code>开头</p></li>
+<li><p>不能超过255个字节（注意它是字节，因此多字节字符将计入255个限制）</p></li>
+</ul></li>
+<li><p><strong>Document：文档</strong></p>
+<p>ES 中的最小数据单元。<strong>一个 document 就像数据库中的一条记录</strong>。通常以 json 格式显示。多个 document 存储于一个索引（Index）中。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">book document</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;book_id&quot;</span>: <span class="string">&quot;1&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;book_name&quot;</span>: <span class="string">&quot;java编程思想&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;book_desc&quot;</span>: <span class="string">&quot;从Java的基础语法到最高级特性（深入的[面向对象](https://baike.baidu.com/item/面向对象)概念、多线程、自动项目构建、单元测试和调试等），本书都能逐步指导你轻松掌握。&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;category_id&quot;</span>: <span class="string">&quot;2&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;category_name&quot;</span>: <span class="string">&quot;java&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>Field：字段</strong></p>
+<p>就像数据库中的列（columns），定义每个 document 应该有的字段。</p></li>
+<li><p><strong>Type：类型</strong></p>
+<p>每个索引里都可以有一个或多个 type，type 是 index 中的一个逻辑数据分类，一个 type 下的 document，都有相同的 field。</p>
+<p><strong>注意</strong>：6.0 之前的版本有 type（类型）概念，type 相当于关系数据库的表，ES 官方将在 ES9.0 版本中彻底删除 type。**本教程 typy 都为 _doc**。</p></li>
+<li><p><strong>shard：分片</strong></p>
+<p>index 数据过大时，将 index 里面的数据，分为多个 shard，分布式的存储在各个服务器上面。可以支持海量数据和高并发，提升性能和吞吐量，充分利用多台机器的 CPU。</p></li>
+<li><p><strong>replica：副本</strong></p>
+<p>在分布式环境下，任何一台机器都会随时宕机，如果宕机，index 的一个分片没有，导致此 index 不能搜索。所以，为了保证数据的安全，我们会将每个 index 的分片经行备份，存储在另外的机器上。保证少数机器宕机es集群仍可以搜索。</p>
+<p>能正常提供查询和插入的分片我们叫做主分片（primary shard），其余的我们就管他们叫做备份的分片（replica shard）。</p>
+<p>ES6 默认新建索引时，5分片，2副本，也就是一主一备，共10个分片。所以，es集群最小规模为两台。</p></li>
+</ol>
+<h4 id="es-vs-数据库概念">3.5.3 ES vs 数据库概念</h4>
+<table>
+<thead>
+<tr class="header">
+<th><strong>关系型数据库（比如MySQL）</strong></th>
+<th><strong>非关系型数据库（ES）</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>数据库Database</td>
+<td>索引Index</td>
+</tr>
+<tr class="even">
+<td>表Table</td>
+<td>索引Index（原为Type）</td>
+</tr>
+<tr class="odd">
+<td>数据行Row</td>
+<td>文档Document</td>
+</tr>
+<tr class="even">
+<td>数据列Column</td>
+<td>字段Field</td>
+</tr>
+<tr class="odd">
+<td>约束Schema</td>
+<td>映射Mapping</td>
+</tr>
+</tbody>
+</table>
+<h2 id="es相关软件安装">4. ES相关软件安装</h2>
+<blockquote>
+<p>这里所有关于ElasticStack版本我用的都是7.8.0</p>
+</blockquote>
+<h3 id="windows安装es">4.1 Windows安装ES</h3>
+<blockquote>
+<p>下载地址：https://www.elastic.co/cn/downloads/elasticsearch</p>
+</blockquote>
+<p>下载和解压缩Elasticsearch安装包，查看目录结构。</p>
+<ul>
+<li><code>bin</code>：脚本目录，包括：启动、停止等可执行脚本</li>
+<li><code>config</code>：配置文件目录</li>
+<li><code>data</code>：索引目录，存放索引文件的地方</li>
+<li><code>logs</code>：日志目录</li>
+<li><code>modules</code>：模块目录，包括了ES功能模块</li>
+<li><code>plugins</code> :插件目录，ES支持插件机制</li>
+</ul>
+<p><strong>配置文件</strong>：ES的配置文件的地址根据安装形式的不同而不同，</p>
+<ul>
+<li><p>使用zip、tar安装，配置文件的地址在安装目录的config下。</p></li>
+<li><p>使用RPM安装，配置文件在<code>/etc/elasticsearch</code>下。</p></li>
+<li><p>使用MSI安装，配置文件的地址在安装目录的config下，并且会自动将config目录地址写入环境变量ES_PATH_CONF。</p></li>
+</ul>
+<h4 id="配置文件1elasticsearch.yml">4.1.1 配置文件1：elasticsearch.yml</h4>
+<p>配置格式是 YAML，可以采用如下两种方式：</p>
+<ul>
+<li>方式1：层次方式</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">path:</span></span><br><span class="line">    <span class="attr">data:</span> <span class="string">/var/lib/elasticsearch</span></span><br><span class="line">    <span class="attr">logs:</span> <span class="string">/var/log/elasticsearch</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>方式2：属性方式</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">path.data:</span> <span class="string">/var/lib/elasticsearch</span></span><br><span class="line"><span class="attr">path.logs:</span> <span class="string">/var/log/elasticsearch</span></span><br></pre></td></tr></table></figure>
+<p><strong>常用的配置项如下</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 配置elasticsearch的集群名称，默认是elasticsearch。建议修改成一个有意义的名称。</span></span><br><span class="line"><span class="attr">cluster.name:</span> 	</span><br><span class="line"><span class="comment"># 节点名，通常一台物理服务器就是一个节点，es会默认随机指定一个名字，建议指定一个有意义的名称，方便管理</span></span><br><span class="line"><span class="comment"># 一个或多个节点组成一个cluster集群，集群是一个逻辑的概念，节点是物理概念，后边章节会详细介绍。</span></span><br><span class="line"><span class="attr">node.name:</span></span><br><span class="line"><span class="comment"># 设置配置文件的存储路径，tar或zip包安装默认在es根目录下的config文件夹，rpm安装默认在/etc/ elasticsearch</span></span><br><span class="line"><span class="attr">path.conf:</span> </span><br><span class="line"><span class="comment"># 设置索引数据的存储路径，默认是es根目录下的data文件夹，可以设置多个存储路径，用逗号隔开。</span></span><br><span class="line"><span class="attr">path.data:</span></span><br><span class="line"><span class="comment"># 设置日志文件的存储路径，默认是es根目录下的logs文件夹</span></span><br><span class="line"><span class="attr">path.logs:</span></span><br><span class="line"><span class="comment"># 设置插件的存放路径，默认是es根目录下的plugins文件夹</span></span><br><span class="line"><span class="attr">path.plugins:</span> </span><br><span class="line"><span class="comment"># 设置为true可以锁住ES使用的内存，避免内存与swap分区交换数据。	</span></span><br><span class="line"><span class="attr">bootstrap.memory_lock:</span> <span class="literal">true</span></span><br><span class="line"><span class="comment"># 设置绑定主机的ip地址，设置为0.0.0.0表示绑定任何ip，允许外网访问，生产环境建议设置为具体的ip。</span></span><br><span class="line"><span class="attr">network.host:</span> </span><br><span class="line"><span class="comment"># 设置对外服务的http端口，默认为9200。</span></span><br><span class="line"><span class="attr">http.port:</span> <span class="number">9200</span></span><br><span class="line"><span class="comment"># 集群结点之间通信端口</span></span><br><span class="line"><span class="attr">transport.tcp.port:</span> <span class="number">9300</span>  </span><br><span class="line"><span class="comment"># 指定该节点是否有资格被选举成为master结点，默认是true，如果原来的master宕机会重新选举新的master。</span></span><br><span class="line"><span class="attr">node.master:</span> </span><br><span class="line"><span class="comment"># 指定该节点是否存储索引数据，默认为true。</span></span><br><span class="line"><span class="attr">node.data:</span> </span><br><span class="line"><span class="comment"># 设置集群中master节点的初始列表。	</span></span><br><span class="line"><span class="attr">discovery.zen.ping.unicast.hosts:</span> [<span class="string">&quot;host1:port&quot;</span>, <span class="string">&quot;host2:port&quot;</span>, <span class="string">&quot;...&quot;</span>]</span><br><span class="line"><span class="comment"># 设置ES自动发现节点连接超时的时间，默认为3秒，如果网络延迟高可设置大些。</span></span><br><span class="line"><span class="attr">discovery.zen.ping.timeout:</span> <span class="string">3s</span></span><br><span class="line"><span class="comment"># 主结点数量的最少值 ,此值的公式为：(master_eligible_nodes / 2) + 1 ，比如：有3个符合要求的主结点，那么这里要设置为2。</span></span><br><span class="line"><span class="attr">discovery.zen.minimum_master_nodes:</span></span><br><span class="line"><span class="comment"># 单机允许的最大存储结点数，通常单机启动一个结点建议设置为1，开发环境如果单机启动多个节点可设置大于1。</span></span><br><span class="line"><span class="attr">node.max_local_storage_nodes:</span> </span><br></pre></td></tr></table></figure>
+<h4 id="配置文件2jvm.options">4.1.2 配置文件2：jvm.options</h4>
+<p>设置最小及最大的JVM堆内存大小：在jvm.options中设置 -Xms和-Xmx：</p>
+<ol type="1">
+<li><p>两个值设置为相等</p></li>
+<li><p>将 -Xmx 设置为不超过物理内存的一半</p>
+<blockquote>
+<p>有原因的，可见 atGuiGu 的笔记</p>
+</blockquote></li>
+</ol>
+<h4 id="配置文件3log4j2.properties">4.1.3 配置文件3：log4j2.properties</h4>
+<p>日志文件设置，ES 使用 log4j，注意日志级别的配置。</p>
+<h4 id="正式使用">4.1.4 正式使用</h4>
+<p><strong>启动</strong>：启动Elasticsearch：<code>bin\elasticsearch.bat</code>，es 的特点就是开箱即，无需配置，启动即可。</p>
+<p>注意：es7 windows版本不支持机器学习，所以 elasticsearch.yml 中添加如下几个参数：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">node.name:</span> <span class="string">node-1</span>  </span><br><span class="line"><span class="attr">cluster.initial_master_nodes:</span> [<span class="string">&quot;node-1&quot;</span>]  </span><br><span class="line"><span class="comment"># 关闭机器学习</span></span><br><span class="line"><span class="attr">xpack.ml.enabled:</span> <span class="literal">false</span> </span><br><span class="line"><span class="comment"># 跨站访问相关</span></span><br><span class="line"><span class="attr">http.cors.enabled:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">http.cors.allow-origin:</span> <span class="string">/.*/</span></span><br></pre></td></tr></table></figure>
+<p><strong>检查ES是否启动成功</strong>：浏览器访问http://localhost:9200/?pretty</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;name&quot;</span> : <span class="string">&quot;LAPTOP-F6OAPAAB&quot;</span>,  # name: node名称，取自机器的hostname</span><br><span class="line">  <span class="string">&quot;cluster_name&quot;</span> : <span class="string">&quot;elasticsearch&quot;</span>,  # cluster_name: 集群名称（默认的集群名称就是elasticsearch）</span><br><span class="line">  <span class="string">&quot;cluster_uuid&quot;</span> : <span class="string">&quot;8gvoNVYYRieneidrT40bXA&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;version&quot;</span> : &#123;</span><br><span class="line">    <span class="attr">&quot;number&quot;</span> : <span class="string">&quot;7.8.0&quot;</span>,  # version.number: <span class="number">7.3</span><span class="number">.0</span>，es版本号</span><br><span class="line">    <span class="string">&quot;build_flavor&quot;</span> : <span class="string">&quot;default&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;build_type&quot;</span> : <span class="string">&quot;zip&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;build_hash&quot;</span> : <span class="string">&quot;757314695644ea9a1dc2fecd26d1a43856725e65&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;build_date&quot;</span> : <span class="string">&quot;2020-06-14T19:35:50.234439Z&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;build_snapshot&quot;</span> : <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">&quot;lucene_version&quot;</span> : <span class="string">&quot;8.5.1&quot;</span>,  # version.lucene_version:封装的lucene版本号</span><br><span class="line">    <span class="string">&quot;minimum_wire_compatibility_version&quot;</span> : <span class="string">&quot;6.8.0&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;minimum_index_compatibility_version&quot;</span> : <span class="string">&quot;6.0.0-beta1&quot;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">&quot;tagline&quot;</span> : <span class="string">&quot;You Know, for Search&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查询集群状态：浏览器访问 http://localhost:9200/_cluster/health</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;cluster_name&quot;</span>:<span class="string">&quot;elasticsearch&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;status&quot;</span>:<span class="string">&quot;green&quot;</span>,  # Status：集群状态。Green 所有分片可用。Yellow所有主分片可用。Red主分片不可用，集群不可用。</span><br><span class="line">    <span class="attr">&quot;timed_out&quot;</span>:<span class="literal">false</span>,</span><br><span class="line">    <span class="attr">&quot;number_of_nodes&quot;</span>:<span class="number">1</span>,</span><br><span class="line">    <span class="attr">&quot;number_of_data_nodes&quot;</span>:<span class="number">1</span>,</span><br><span class="line">    <span class="attr">&quot;active_primary_shards&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;active_shards&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;relocating_shards&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;initializing_shards&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;unassigned_shards&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;delayed_unassigned_shards&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;number_of_pending_tasks&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;number_of_in_flight_fetch&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;task_max_waiting_in_queue_millis&quot;</span>:<span class="number">0</span>,</span><br><span class="line">    <span class="attr">&quot;active_shards_percent_as_number&quot;</span>:<span class="number">100</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="windows安装kibana">4.2 Windows安装Kibana</h3>
+<ol type="1">
+<li>Kibana是ES数据的前端展现，数据分析时，可以方便地看到数据。作为开发人员，可以方便访问ES。</li>
+<li>下载，解压Kibana。</li>
+<li>启动Kibana：<code>bin\kibana.bat</code></li>
+<li>浏览器访问 http://localhost:5601 进入Dev Tools界面。</li>
+<li>发送get请求，查看集群状态<code>GET _cluster/health</code></li>
+</ol>
+<p><strong>Dev Tools界面</strong>：<img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/DevTools界面.png" alt="DevTools界面"></p>
+<p><strong>监控集群界面</strong>：<img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/集群监控界面.png" alt="集群监控界面"></p>
+<p><strong>集群状态（搜索速率、索引速率等）</strong>：<img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/集群状态界面.png" alt="集群状态界面"></p>
+<h3 id="windows安装postman">4.3 Windows安装Postman</h3>
+<p>Postman是一个模拟 http 请求的工具。能够非常细致地定制化各种http请求。如<code>get\post\put\delete</code>，携带body参数等。</p>
+<p>在没有Kibana时，可以使用Postman调试。</p>
+<p>使用：get请求访问http://localhost:9200/</p>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/PostmanGet.png" alt="PostmanGet"></p>
+<p>测试一下get方式查询集群状态：http://localhost:9200/_cluster/health</p>
+<p><img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/PostmanGet查询集群状态.png" alt="PostmanGet查询集群状态"></p>
+<h3 id="windows安装head插件">4.4 Windows安装head插件</h3>
+<p>head插件是 ES 的一个可视化管理插件，用来监视 ES 的状态，并通过 head 客户端和 ES 服务进行交互，比如创建映射、创建索引等，head 的项目地址在https://github.com/mobz/elasticsearch-head 。</p>
+<p>从ES6.0开始，head插件支持使得node.js运行</p>
+<p><strong>直接在Chrome上安装插件就行了</strong></p>
+<p><strong>运行</strong>：<img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/Head插件.png" alt="Head插件"></p>
+<blockquote>
+<p>打开浏览器调试工具发现报错：</p>
+<p>原因是：head 插件作为客户端要连接ES服务（localhost:9200），此时存在跨域问题，elasticsearch默认不允许跨域访问。</p>
+<p>设置 elasticsearch 允许跨域访问。</p>
+<p>在 <code>config/elasticsearch.yml</code> 后面增加以下参数：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 开启cors跨域访问支持，默认为false   </span></span><br><span class="line"><span class="meta">http.cors.enabled</span>: <span class="string">true   </span></span><br><span class="line"><span class="comment"># 跨域访问允许的域名地址，(允许所有域名)以上使用正则   </span></span><br><span class="line"><span class="meta">http.cors.allow-origin</span>: <span class="string">/.*/</span></span><br></pre></td></tr></table></figure>
+<p>注意：将config/elasticsearch.yml 另存为 UTF-8 编码格式。</p>
+</blockquote>
+<p>成功连接ES：<img src="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/head插件成功连接ES.png" alt="head插件成功连接ES"></p>
+<blockquote>
+<p>注意：<code>kibana\postman\head</code>插件选择自己喜欢的一种使用即可。</p>
+<p>本教程使用Kibana的dev tool，因为地址栏省略了http://localhost:9200。</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+	
+	<div>
+		
+			<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+
+<div>
+    
+       <div style="text-align:center;color:#bfbfbf;font-size:16px;">
+             <span>--- 本文结束 </span>
+             <i class="fa fa-thumbs-o-up"></i>
+             <span> 感谢阅读 ---</span>
+       </div>
+    
+</div>
+		
+	</div>
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag"># 学习笔记</a>
+              <a href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="tag"># 中间件</a>
+              <a href="/tags/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/" rel="tag"># 开发框架</a>
+              <a href="/tags/ELK/" rel="tag"># ELK</a>
+              <a href="/tags/Elasticsearck/" rel="tag"># Elasticsearck</a>
+              <a href="/tags/%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2/" rel="tag"># 全文检索</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/08/15/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/CAT/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9ACAT%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-3/" rel="prev" title="中间件：CAT学习笔记-3">
+      <i class="fa fa-chevron-left"></i> 中间件：CAT学习笔记-3
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/08/22/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/ELK/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1/%E4%B8%AD%E9%97%B4%E4%BB%B6%EF%BC%9AELK%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-2/" rel="next" title="中间件：ELK学习笔记-2">
+      中间件：ELK学习笔记-2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%AD%E9%97%B4%E4%BB%B6elk%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-1"><span class="nav-text">中间件：ELK学习笔记-1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-text">1. 概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#elastic-stack%E7%AE%80%E4%BB%8B"><span class="nav-text">2. Elastic Stack简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-text">2.1 简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E8%89%B2"><span class="nav-text">2.2 特色</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E4%BB%8B%E7%BB%8D"><span class="nav-text">2.3 组件介绍</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#elasticsearch%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">3. Elasticsearch是什么</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-text">3.1 搜索是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E6%90%9C%E7%B4%A2%E5%BC%8A%E7%AB%AF"><span class="nav-text">3.2 数据库搜索弊端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95lucene"><span class="nav-text">3.3 全文检索&amp;倒排索引&amp;Lucene</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFes"><span class="nav-text">3.4 什么是ES</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#es%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="nav-text">3.5 ES核心概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#lucene%E5%92%8Ces%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-text">3.5.1 Lucene和ES的关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#es-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="nav-text">3.5.2 ES 的核心概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#es-vs-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%A6%82%E5%BF%B5"><span class="nav-text">3.5.3 ES vs 数据库概念</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#es%E7%9B%B8%E5%85%B3%E8%BD%AF%E4%BB%B6%E5%AE%89%E8%A3%85"><span class="nav-text">4. ES相关软件安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#windows%E5%AE%89%E8%A3%85es"><span class="nav-text">4.1 Windows安装ES</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B61elasticsearch.yml"><span class="nav-text">4.1.1 配置文件1：elasticsearch.yml</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B62jvm.options"><span class="nav-text">4.1.2 配置文件2：jvm.options</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B63log4j2.properties"><span class="nav-text">4.1.3 配置文件3：log4j2.properties</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AD%A3%E5%BC%8F%E4%BD%BF%E7%94%A8"><span class="nav-text">4.1.4 正式使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#windows%E5%AE%89%E8%A3%85kibana"><span class="nav-text">4.2 Windows安装Kibana</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#windows%E5%AE%89%E8%A3%85postman"><span class="nav-text">4.3 Windows安装Postman</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#windows%E5%AE%89%E8%A3%85head%E6%8F%92%E4%BB%B6"><span class="nav-text">4.4 Windows安装head插件</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZhuCC"
+      src="/images/%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">ZhuCC</p>
+  <div class="site-description" itemprop="description">不急不躁。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">180</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">80</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+	  
+	  
+        <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+        <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+        <div class="widget-wrap">
+            <div id="myCanvasContainer" class="widget tagcloud">
+                <canvas width="250" height="250" id="resCanvas" style="width=100%">
+                    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anaconda/" rel="tag">Anaconda</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAT/" rel="tag">CAT</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELK/" rel="tag">ELK</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Elasticsearck/" rel="tag">Elasticsearck</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GPU/" rel="tag">GPU</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTP/" rel="tag">HTTP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IO/" rel="tag">IO</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDBC/" rel="tag">JDBC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDK/" rel="tag">JDK</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">72</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E8%AF%AD%E6%B3%95/" rel="tag">Java语法</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/K%E8%BF%91%E9%82%BB/" rel="tag">K近邻</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LeetCode/" rel="tag">LeetCode</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pytorch/" rel="tag">Pytorch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSM/" rel="tag">SSM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringMVC/" rel="tag">SpringMVC</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP-IP/" rel="tag">TCP/IP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TensorFlow/" rel="tag">TensorFlow</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadLocal/" rel="tag">ThreadLocal</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TortoiseGit/" rel="tag">TortoiseGit</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Typora/" rel="tag">Typora</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/" rel="tag">Ubuntu</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nvidia/" rel="tag">nvidia</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="tag">中间件</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2/" rel="tag">全文检索</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/" rel="tag">决策树</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98/" rel="tag">分类问题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98/" rel="tag">刷题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98%E7%AC%94%E8%AE%B0/" rel="tag">刷题笔记</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/" rel="tag">博客搭建</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%82%E8%80%83%E6%96%87%E4%BB%B6/" rel="tag">参考文件</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a><span class="tag-list-count">97</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/" rel="tag">开发框架</a><span class="tag-list-count">27</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%81%E4%B9%85%E5%B1%82%E6%A1%86%E6%9E%B6/" rel="tag">持久层框架</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E6%8E%A8%E5%AF%BC/" rel="tag">数学推导</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97/" rel="tag">数据清洗</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A5%E5%BF%97%E6%A1%86%E6%9E%B6/" rel="tag">日志框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E7%BB%93%E6%9E%84/" rel="tag">树结构</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" rel="tag">特征选择</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="tag">环境配置</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag">目标检测</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" rel="tag">线性回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%81%9A%E7%B1%BB/" rel="tag">聚类</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%A8%E7%A4%BA%E5%B1%82/" rel="tag">表示层</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E8%B7%AF/" rel="tag">计算机网路</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag">读书笔记</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B0%83%E7%94%A8%E9%93%BE%E7%9B%91%E6%8E%A7/" rel="tag">调用链监控</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="tag">贝叶斯</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8/" rel="tag">软件使用</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/" rel="tag">逻辑回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E5%90%88%E7%B1%BB/" rel="tag">集合类</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" rel="tag">集成学习</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E7%BB%8F/" rel="tag">面经</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E7%AC%94%E8%AE%B0/" rel="tag">面试笔记</a><span class="tag-list-count">56</span></li></ul>
+                </canvas>
+            </div>
+        </div>
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZhuCC</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">3.2m</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">48:43</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : '3it0tVBbppFeFBVa8QgB3vxM-gzGzoHsz',
+      appKey     : '9VtnMWSrhAtC1pSRaA4Rivx9',
+      placeholder: "请多多指教~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

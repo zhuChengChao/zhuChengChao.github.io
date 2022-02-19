@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Mario.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Mario.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="开发过程中对于码出来的代码自测当然是不可避免环节，即所谓的单测，好的单侧能极大的避免bug的出现； 但对于处处存在着依赖的应用，测试环境发布再测试显然是比较麻烦，因而就出现了较多的测试框架，比如Mockito，也因在工作过程中需要使用到该框架对自己写的代码进行测试，故找了写资料来学习一波，做些笔记方便后续回顾。  官方文档传送门：https:&#x2F;&#x2F;javadoc.io&#x2F;doc&#x2F;org.mock">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Utils：Test For Mockito">
+<meta property="og:url" content="http://example.com/2022/02/13/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/Utils/Utils%EF%BC%9ATest%20For%20Mockito/index.html">
+<meta property="og:site_name" content="贤余超">
+<meta property="og:description" content="开发过程中对于码出来的代码自测当然是不可避免环节，即所谓的单测，好的单侧能极大的避免bug的出现； 但对于处处存在着依赖的应用，测试环境发布再测试显然是比较麻烦，因而就出现了较多的测试框架，比如Mockito，也因在工作过程中需要使用到该框架对自己写的代码进行测试，故找了写资料来学习一波，做些笔记方便后续回顾。  官方文档传送门：https:&#x2F;&#x2F;javadoc.io&#x2F;doc&#x2F;org.mock">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-02-13T02:24:00.000Z">
+<meta property="article:modified_time" content="2022-02-13T02:24:00.000Z">
+<meta property="article:author" content="ZhuCC">
+<meta property="article:tag" content="Mock">
+<meta property="article:tag" content="Mockito">
+<meta property="article:tag" content="测试工具">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/02/13/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/Utils/Utils%EF%BC%9ATest%20For%20Mockito/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Utils：Test For Mockito | 贤余超</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+	<a target="_blank" rel="noopener" href="https://github.com/zhuChengChao" class="github-corner" aria-label="View source on GitHub">
+	<svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+	<path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+	<path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+	<path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+	</svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">贤余超</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一位底层码农 :-)</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">96</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">18</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">203</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/02/13/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/Utils/Utils%EF%BC%9ATest%20For%20Mockito/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="ZhuCC">
+      <meta itemprop="description" content="不急不躁。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贤余超">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Utils：Test For Mockito
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-02-13 10:24:00" itemprop="dateCreated datePublished" datetime="2022-02-13T10:24:00+08:00">2022-02-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index"><span itemprop="name">开发框架</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index"><span itemprop="name">工具</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/02/13/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/Utils/Utils%EF%BC%9ATest%20For%20Mockito/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/02/13/%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/Utils/Utils%EF%BC%9ATest%20For%20Mockito/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>17k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>15 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>开发过程中对于码出来的代码自测当然是不可避免环节，即所谓的单测，好的单侧能极大的避免bug的出现；</p>
+<p>但对于处处存在着依赖的应用，测试环境发布再测试显然是比较麻烦，因而就出现了较多的测试框架，比如Mockito，也因在工作过程中需要使用到该框架对自己写的代码进行测试，故找了写资料来学习一波，做些笔记方便后续回顾。</p>
+<blockquote>
+<p>官方文档传送门：https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html</p>
+</blockquote>
+<span id="more"></span>
+<h1 id="utilstest-for-mockito">Utils：Test For Mockito</h1>
+<h2 id="mockito概述">Mockito概述</h2>
+<p>Mockito 是一个模拟测试框架，主要功能是<strong>模拟类/对象的行为</strong>。</p>
+<p>通俗地讲就是我们在对某个类测试时，涉及到一些RPC调用，数据库，缓存的操作等，这时候就可以将对应的依赖Mock掉（模拟），让其返回我们自己期望其出现的结果。</p>
+<p>使用了 Mockito ，使得我们不用再对待测代码的外部依赖进行关注，直接对需要进行依赖的操作通过打桩的方式来处理需要依赖外部调用的业务逻辑，然后进关注和测试自己的业务逻辑。</p>
+<p><strong>打桩：</strong>打桩也叫 stub，存根。就是把所需的<strong>测试数据塞进对象</strong>中，关注点在于入参和出参。在Mockito中使用 <code>when(…).thenReturn(…)</code>等方式描述了对象以某个入参调用某个方法时，返回<code>thenReturn</code>中指定的出参。这个过程就叫<strong>Stub打桩</strong>。只要这个方法被stub了，每次调用，就会一直返回这个stub的值。</p>
+<p>Mockito的<strong>使用过程</strong>很简单：</p>
+<ol type="1">
+<li>将被测试接口相关的外部依赖对象转换为Mock对象，然后打桩。</li>
+<li>执行测试接口代码。</li>
+<li>校验返回的关键结果是否正确</li>
+</ol>
+<h2 id="环境准备">环境准备</h2>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">&lt;!-- PowerMock JUnit 4.4+ Module --&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.powermock<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>powermock-module-junit4<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">version</span>&gt;</span>2.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">&lt;!-- PowerMock Mockito2 API --&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.powermock<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>powermock-api-mockito2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">version</span>&gt;</span>2.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">&lt;!-- junit --&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">version</span>&gt;</span>4.11<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="使用姿势">使用姿势</h2>
+<h3 id="mock进行模拟">Mock进行模拟</h3>
+<p><code>org.mockito.Mockito</code> 的 mock 方法可以模拟类和接口。</p>
+<p><strong>Mock类：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.junit.Assert;</span><br><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.mockito.Mockito.*;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMock01</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Random类的对象利用Mock来进行模拟</span></span><br><span class="line">    Random mockRandom = mock(Random.class);</span><br><span class="line">    <span class="comment">// 指定调用 nextInt 方法时，永远返回 100</span></span><br><span class="line">    when(mockRandom.nextInt()).thenReturn(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, mockRandom.nextInt());</span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, mockRandom.nextInt());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Mock接口：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMock02</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    List mockList = mock(List.class);</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">0</span>, mockList.size());</span><br><span class="line">    Assert.assertEquals(<span class="keyword">null</span>, mockList.get(<span class="number">0</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 调用 mock 对象的写方法，是没有效果的</span></span><br><span class="line">    mockList.add(<span class="string">&quot;a&quot;</span>);  </span><br><span class="line">    <span class="comment">// 没有指定 size() 方法返回值，这里结果是默认值</span></span><br><span class="line">    Assert.assertEquals(<span class="number">0</span>, mockList.size());  </span><br><span class="line">    <span class="comment">// 没有指定 get(0) 返回值，这里结果是默认值</span></span><br><span class="line">    Assert.assertEquals(<span class="keyword">null</span>, mockList.get(<span class="number">0</span>));   </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指定 get(0)时返回 a</span></span><br><span class="line">    when(mockList.get(<span class="number">0</span>)).thenReturn(<span class="string">&quot;a&quot;</span>);          </span><br><span class="line">    <span class="comment">// 没有指定 size() 方法返回值，这里结果是默认值</span></span><br><span class="line">    Assert.assertEquals(<span class="number">0</span>, mockList.size());    </span><br><span class="line">    <span class="comment">// 因为上面指定了 get(0) 返回 a，所以这里会返回 a</span></span><br><span class="line">    Assert.assertEquals(<span class="string">&quot;a&quot;</span>, mockList.get(<span class="number">0</span>));     </span><br><span class="line">    <span class="comment">// 没有指定 get(1) 返回值，这里结果是默认值</span></span><br><span class="line">    Assert.assertEquals(<span class="keyword">null</span>, mockList.get(<span class="number">1</span>));     </span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="mock注解"><span class="citation" data-cites="Mock注解">@Mock注解</span></h3>
+<p><code>@Mock</code> 注解可以理解为对 mock 方法的一个替代。</p>
+<blockquote>
+<p><strong>注意：</strong>使用该注解时，要使用<code>MockitoAnnotations.initMocks</code> 方法，让注解生效。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Mock</span></span><br><span class="line"><span class="keyword">private</span> Random random;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMock03</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// MockitoAnnotations.initMocks(this);  // 已经废弃用下一个</span></span><br><span class="line">    MockitoAnnotations.openMocks(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    when(random.nextInt()).thenReturn(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, random.nextInt());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的话<code>MockitoAnnotations.initMocks</code> 放在 junit 的 <code>@Before</code> 注解修饰的函数中更合适：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Mock</span></span><br><span class="line"><span class="keyword">private</span> Random random;   </span><br><span class="line"></span><br><span class="line"><span class="meta">@Before</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">before</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 让注解生效</span></span><br><span class="line">    MockitoAnnotations.openMocks(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMock04</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    when(random.nextInt()).thenReturn(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, random.nextInt());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>MockitoAnnotations.initMocks</code> 的一个替代方案是使用 MockitoJUnitRunner 。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.junit.Assert;</span><br><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> org.junit.runner.RunWith;</span><br><span class="line"><span class="keyword">import</span> org.mockito.Mock;</span><br><span class="line"><span class="keyword">import</span> org.mockito.junit.MockitoJUnitRunner;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.mockito.Mockito.*;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RunWith(MockitoJUnitRunner.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MockTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Mock</span></span><br><span class="line">    <span class="keyword">private</span> Random random;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        when(random.nextInt()).thenReturn(<span class="number">100</span>);</span><br><span class="line">        Assert.assertEquals(<span class="number">100</span>, random.nextInt());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="mockito-spyspy">Mockito spy&amp;<span class="citation" data-cites="Spy">@Spy</span></h3>
+<p>spy 和 mock不同，不同点是：</p>
+<ul>
+<li>spy 的参数是对象示例，mock 的参数是 class。</li>
+<li>被 spy 的对象，调用其方法时默认会走真实方法；但mock 对象不会。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MockTest</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 测试 spy</span></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testSpy</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        ExampleService spyExampleService = spy(<span class="keyword">new</span> ExampleService());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 默认会走真实方法</span></span><br><span class="line">        Assert.assertEquals(<span class="number">3</span>, spyExampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 打桩后，不会走了</span></span><br><span class="line">        when(spyExampleService.add(<span class="number">1</span>, <span class="number">2</span>)).thenReturn(<span class="number">10</span>);</span><br><span class="line">        Assert.assertEquals(<span class="number">10</span>, spyExampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 但是参数比匹配的调用，依然走真实方法</span></span><br><span class="line">        Assert.assertEquals(<span class="number">3</span>, spyExampleService.add(<span class="number">2</span>, <span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 测试 mock</span></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMock</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        ExampleService mockExampleService = mock(ExampleService.class);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 默认返回结果是返回类型int的默认值</span></span><br><span class="line">        Assert.assertEquals(<span class="number">0</span>, mockExampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ExampleService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a+b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：mock 对象的方法的返回值默认都是返回类型的默认值。</p>
+<p>例如，返回类型是 int，默认返回值是 0；返回类型是一个类，默认返回值是 null。</p>
+</blockquote>
+<p>spy 对应注解 <span class="citation" data-cites="Spy">@Spy</span>，和 <span class="citation" data-cites="Mock">@Mock</span> 是一样用的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Spy</span></span><br><span class="line"><span class="keyword">private</span> ExampleService spyExampleService;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testspyAnno</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    MockitoAnnotations.openMocks(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">3</span>, spyExampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    when(spyExampleService.add(<span class="number">1</span>, <span class="number">2</span>)).thenReturn(<span class="number">10</span>);</span><br><span class="line">    Assert.assertEquals(<span class="number">10</span>, spyExampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>对于<code>@Spy</code>，如果发现修饰的变量是 null，会自动调用类的无参构造函数来初始化：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 写法1</span></span><br><span class="line"><span class="meta">@Spy</span></span><br><span class="line"><span class="keyword">private</span> ExampleService spyExampleService;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 写法2</span></span><br><span class="line"><span class="meta">@Spy</span></span><br><span class="line"><span class="keyword">private</span> ExampleService spyExampleService = <span class="keyword">new</span> ExampleService();</span><br></pre></td></tr></table></figure>
+<p>当然前提就是要有默认的无参构造。</p>
+</blockquote>
+<h3 id="injectmocks-注解"><span class="citation" data-cites="InjectMocks">@InjectMocks</span> 注解</h3>
+<p>mockito 会将 <code>@Mock</code>、<code>@Spy</code> 修饰的对象自动注入到 <code>@InjectMocks</code> 修饰的对象中。注入方式有多种，mockito 会按照下面的顺序尝试注入：</p>
+<ol type="1">
+<li>构造函数注入</li>
+<li>设值函数注入（set函数）</li>
+<li>属性注入</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.xyc.demo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> cn.xyc.demo.service.HttpService;</span><br><span class="line"><span class="keyword">import</span> cn.xyc.demo.service.ExampleService;</span><br><span class="line"><span class="keyword">import</span> org.junit.Assert;</span><br><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> org.mockito.InjectMocks;</span><br><span class="line"><span class="keyword">import</span> org.mockito.Mock;</span><br><span class="line"><span class="keyword">import</span> org.mockito.MockitoAnnotations;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.mockito.Mockito.when;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExampleServiceTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Mock</span></span><br><span class="line">    <span class="keyword">private</span> HttpService httpService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@InjectMocks</span>  <span class="comment">// 会将httpService注入到exampleService中去</span></span><br><span class="line">    <span class="keyword">private</span> ExampleService exampleService = <span class="keyword">new</span> ExampleService();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testInjectMocks</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        MockitoAnnotations.openMocks(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">        when(httpService.queryStatus()).thenReturn(<span class="number">0</span>);</span><br><span class="line">        Assert.assertEquals(<span class="string">&quot;你好&quot;</span>, exampleService.hello());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>其中涉及到的业务类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 业务类1：</span></span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">queryStatus</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 发起网络请求，提取返回结果</span></span><br><span class="line">        <span class="comment">// 这里用随机数模拟结果</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Random().nextInt(<span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 业务类2</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExampleService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> HttpService httpService;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> status = httpService.queryStatus();</span><br><span class="line">        <span class="keyword">if</span> (status == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;你好&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (status == <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;Hello&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;未知状态&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h3 id="参数匹配">参数匹配</h3>
+<h4 id="精准匹配">精准匹配</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List mockList = mock(List.class);</span><br><span class="line"><span class="comment">// 匹配姿势1：当mockList调用get(0)时，就返回0，这个 0 就是参数的精确匹配。</span></span><br><span class="line">when(mockList.get(<span class="number">0</span>)).thenReturn(<span class="string">&quot;a&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 匹配姿势2：对于精确匹配，还可以用 eq，</span></span><br><span class="line">when(mockStringList.get(eq(<span class="number">0</span>))).thenReturn(<span class="string">&quot;a&quot;</span>);</span><br></pre></td></tr></table></figure>
+<h4 id="模糊匹配">模糊匹配</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Mockito.anyInt() 匹配所有的 int</span></span><br><span class="line">when(mockStringList.get(anyInt())).thenReturn(<span class="string">&quot;a&quot;</span>);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>还有很多的any类型，这里不列举了。</p>
+</blockquote>
+<h4 id="匹配顺序">匹配顺序</h4>
+<p>如果参数匹配即声明了精确匹配，也声明了模糊匹配；又或者同一个值的精确匹配出现了两次，使用时会匹配哪一个？会匹配符合匹配条件的最新声明的匹配。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 精确匹配 0</span></span><br><span class="line">when(testList.get(<span class="number">0</span>)).thenReturn(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">Assert.assertEquals(<span class="string">&quot;a&quot;</span>, testList.get(<span class="number">0</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 精确匹配 0</span></span><br><span class="line">when(testList.get(<span class="number">0</span>)).thenReturn(<span class="string">&quot;b&quot;</span>);</span><br><span class="line">Assert.assertEquals(<span class="string">&quot;b&quot;</span>, testList.get(<span class="number">0</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 模糊匹配</span></span><br><span class="line">when(testList.get(anyInt())).thenReturn(<span class="string">&quot;c&quot;</span>);</span><br><span class="line">Assert.assertEquals(<span class="string">&quot;c&quot;</span>, testList.get(<span class="number">0</span>));</span><br><span class="line">Assert.assertEquals(<span class="string">&quot;c&quot;</span>, testList.get(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 精确匹配 0</span></span><br><span class="line">when(testList.get(<span class="number">0</span>)).thenReturn(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">Assert.assertEquals(<span class="string">&quot;a&quot;</span>, testList.get(<span class="number">0</span>));</span><br><span class="line">Assert.assertEquals(<span class="string">&quot;c&quot;</span>, testList.get(<span class="number">1</span>));</span><br></pre></td></tr></table></figure>
+<h3 id="验证行为">验证行为</h3>
+<h4 id="verify校验">verify校验</h4>
+<blockquote>
+<p>verify 可以校验 mock 对象是否发生过某些操作</p>
+</blockquote>
+<p><strong>基础使用</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 静态导入会使代码更简洁</span></span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.mockito.Mockito.*;  </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MockTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testVerify</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="comment">//mock creation 创建mock对象</span></span><br><span class="line">        List mockedList = mock(List.class);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//using mock object 使用mock对象</span></span><br><span class="line">        mockedList.add(<span class="string">&quot;one&quot;</span>);</span><br><span class="line">        mockedList.clear();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//verification 验证是否执行过某些行为</span></span><br><span class="line">        verify(mockedList).add(<span class="string">&quot;one&quot;</span>);</span><br><span class="line">        verify(mockedList).clear();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>验证函数的确切调用次数</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">List mockedList = mock(List.class);</span><br><span class="line"></span><br><span class="line"><span class="comment">//using mock</span></span><br><span class="line">mockedList.add(<span class="string">&quot;once&quot;</span>);</span><br><span class="line">mockedList.add(<span class="string">&quot;twice&quot;</span>);</span><br><span class="line">mockedList.add(<span class="string">&quot;twice&quot;</span>);</span><br><span class="line"></span><br><span class="line">mockedList.add(<span class="string">&quot;three times&quot;</span>);</span><br><span class="line">mockedList.add(<span class="string">&quot;three times&quot;</span>);</span><br><span class="line">mockedList.add(<span class="string">&quot;three times&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//following two verifications work exactly the same - times(1) is used by default</span></span><br><span class="line">verify(mockedList).add(<span class="string">&quot;once&quot;</span>);</span><br><span class="line">verify(mockedList, times(<span class="number">1</span>)).add(<span class="string">&quot;once&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//exact number of invocations verification</span></span><br><span class="line">verify(mockedList, times(<span class="number">2</span>)).add(<span class="string">&quot;twice&quot;</span>);</span><br><span class="line">verify(mockedList, times(<span class="number">3</span>)).add(<span class="string">&quot;three times&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//verification using never(). never() is an alias to times(0)</span></span><br><span class="line">verify(mockedList, never()).add(<span class="string">&quot;never happened&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//verification using atLeast()/atMost()</span></span><br><span class="line">verify(mockedList, atLeastOnce()).add(<span class="string">&quot;three times&quot;</span>);</span><br><span class="line">verify(mockedList, atLeast(<span class="number">2</span>)).add(<span class="string">&quot;three times&quot;</span>);</span><br><span class="line">verify(mockedList, atMost(<span class="number">5</span>)).add(<span class="string">&quot;three times&quot;</span>);</span><br></pre></td></tr></table></figure>
+<h4 id="断言校验">断言校验</h4>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">import org.junit.Assert;</span><br><span class="line"></span><br><span class="line">// 校验值的姿势：</span><br><span class="line">Assert.assertEquals(&quot;a&quot;, testList.get(0));</span><br><span class="line">Assert.assertEquals(&quot;c&quot;, testList.get(1));</span><br><span class="line"></span><br><span class="line">// 校验异常姿势：</span><br><span class="line">Assert.assertTrue(ex instanceof RuntimeException);</span><br><span class="line"></span><br><span class="line">// 直接校验失败：</span><br><span class="line">Assert.fail();</span><br><span class="line"></span><br><span class="line">// ...其他内容间相应的函数</span><br></pre></td></tr></table></figure>
+<h4 id="异常校验">异常校验*</h4>
+<blockquote>
+<p>一种看着更高端的方式对异常进行校验：</p>
+</blockquote>
+<h3 id="打桩使用">打桩使用</h3>
+<h4 id="thenreturndoreturn-设置方法的返回值">thenReturn&amp;doReturn 设置方法的返回值</h4>
+<p>thenReturn设置方法的返回值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testThenReturn1</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Random mockRandom = mock(Random.class);</span><br><span class="line">    <span class="comment">// thenReturn 用来指定特定函数和参数调用的返回值</span></span><br><span class="line">    when(mockRandom.nextInt()).thenReturn(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">1</span>, mockRandom.nextInt());</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testThenReturn2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Random mockRandom = mock(Random.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// thenReturn中可以指定多个返回值</span></span><br><span class="line">    when(mockRandom.nextInt()).thenReturn(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 在调用时返回值依次出现。若调用次数超过返回值的数量，再次调用时返回最后一个返回值。</span></span><br><span class="line">    Assert.assertEquals(<span class="number">1</span>, mockRandom.nextInt());</span><br><span class="line">    Assert.assertEquals(<span class="number">2</span>, mockRandom.nextInt());</span><br><span class="line">    Assert.assertEquals(<span class="number">3</span>, mockRandom.nextInt());</span><br><span class="line">    Assert.assertEquals(<span class="number">3</span>, mockRandom.nextInt());</span><br><span class="line">    Assert.assertEquals(<span class="number">3</span>, mockRandom.nextInt());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>doReturn 的作用和 thenReturn 相同，但使用方式不同：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testDoReturn</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Random random = mock(Random.class);</span><br><span class="line">    doReturn(<span class="number">1</span>).when(random).nextInt();</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">1</span>, random.nextInt());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="thenthrowdothrow-让方法抛出异常">thenThrow&amp;doThrow 让方法抛出异常</h4>
+<p><code>when .. thenThrow</code>只能让有返回值的方法抛出异常，但不能让返回值是 void 的方法抛出异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testThenThrow1</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Random mockRandom = mock(Random.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// thenThrow 用来让函数调用抛出异常。</span></span><br><span class="line">    when(mockRandom.nextInt()).thenThrow(<span class="keyword">new</span> RuntimeException(<span class="string">&quot;异常&quot;</span>));</span><br><span class="line">    <span class="comment">// 等价于：</span></span><br><span class="line">    <span class="comment">// doThrow(new RuntimeException(&quot;异常&quot;)).when(random).nextInt();</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        mockRandom.nextInt();</span><br><span class="line">        Assert.fail();  <span class="comment">// 上面会抛出异常，所以不会走到这里</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">        Assert.assertTrue(ex <span class="keyword">instanceof</span> RuntimeException);</span><br><span class="line">        Assert.assertEquals(<span class="string">&quot;异常&quot;</span>, ex.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testThenThrow2</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Random mockRandom = mock(Random.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// thenThrow 中可以指定多个异常，在调用时异常依次出现。</span></span><br><span class="line">    <span class="comment">// 若调用次数超过异常的数量，再次调用时抛出最后一个异常。</span></span><br><span class="line">    when(mockRandom.nextInt()).thenThrow(<span class="keyword">new</span> RuntimeException(<span class="string">&quot;异常1&quot;</span>), <span class="keyword">new</span> RuntimeException(<span class="string">&quot;异常2&quot;</span>));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        mockRandom.nextInt();</span><br><span class="line">        Assert.fail();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">        Assert.assertTrue(ex <span class="keyword">instanceof</span> RuntimeException);</span><br><span class="line">        Assert.assertEquals(<span class="string">&quot;异常1&quot;</span>, ex.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        mockRandom.nextInt();</span><br><span class="line">        Assert.fail();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">        Assert.assertTrue(ex <span class="keyword">instanceof</span> RuntimeException);</span><br><span class="line">        Assert.assertEquals(<span class="string">&quot;异常2&quot;</span>, ex.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>错误用法：</strong>当对应返回类型是 void 的函数，thenThrow 是无效的，要使用 doThrow</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">ExampleService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Mock</span></span><br><span class="line"><span class="keyword">private</span> ExampleService exampleService;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    MockitoAnnotations.initMocks(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这句编译不通过，IDE 也会提示错误，原因很简单，when 的参数是非 void</span></span><br><span class="line">    when(exampleService.hello()).thenThrow(<span class="keyword">new</span> RuntimeException(<span class="string">&quot;异常&quot;</span>));</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面是正确用法。</p>
+</blockquote>
+<p>用 doThrow 可以让返回void的函数抛出异常，同样也可以让返回非void的函数抛出异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    MockitoAnnotations.openMocks(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这种写法可以达到效果</span></span><br><span class="line">    doThrow(<span class="keyword">new</span> RuntimeException(<span class="string">&quot;异常&quot;</span>)).when(exampleService).hello();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        exampleService.hello();</span><br><span class="line">        Assert.fail();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RuntimeException ex) &#123;</span><br><span class="line">        Assert.assertEquals(<span class="string">&quot;异常&quot;</span>, ex.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="thenthenanswerdoanswer-自定义方法处理逻辑">then&amp;thenAnswer&amp;doAnswer 自定义方法处理逻辑</h4>
+<p>then 和 thenAnswer 的效果是一样的；它们的参数是实现 Answer 接口的对象，在该对象中可以获取调用参数，自定义返回值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Mock</span></span><br><span class="line"><span class="keyword">private</span> ExampleService exampleService;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testThenAnswer</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    MockitoAnnotations.openMocks(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这里的话then和thenAnswer的效果是一样的</span></span><br><span class="line">    when(exampleService.add(anyInt(),anyInt())).thenAnswer(<span class="keyword">new</span> Answer&lt;Integer&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Integer <span class="title">answer</span><span class="params">(InvocationOnMock invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">            Object[] args = invocation.getArguments();</span><br><span class="line">            <span class="comment">// 获取参数</span></span><br><span class="line">            Integer a = (Integer) args[<span class="number">0</span>];</span><br><span class="line">            Integer b = (Integer) args[<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 根据第1个参数，返回不同的值</span></span><br><span class="line">            <span class="keyword">if</span> (a == <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">9</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (a == <span class="number">2</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">99</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (a == <span class="number">3</span>) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;异常&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">999</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">9</span>, exampleService.add(<span class="number">1</span>, <span class="number">100</span>));</span><br><span class="line">    Assert.assertEquals(<span class="number">99</span>, exampleService.add(<span class="number">2</span>, <span class="number">100</span>));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        exampleService.add(<span class="number">3</span>, <span class="number">100</span>);</span><br><span class="line">        Assert.fail();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RuntimeException ex) &#123;</span><br><span class="line">        Assert.assertEquals(<span class="string">&quot;异常&quot;</span>, ex.getMessage());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// class ExampleService &#123;</span></span><br><span class="line"><span class="comment">//     int add(int a, int b) &#123;</span></span><br><span class="line"><span class="comment">//         return a+b;</span></span><br><span class="line"><span class="comment">//     &#125;</span></span><br><span class="line"><span class="comment">// &#125;</span></span><br></pre></td></tr></table></figure>
+<p>doAnswer 的作用和 thenAnswer 相同，但使用方式不同：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testDoAnswer</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    MockitoAnnotations.openMocks(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    Random random = mock(Random.class);</span><br><span class="line">    doAnswer(<span class="keyword">new</span> Answer() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Object <span class="title">answer</span><span class="params">(InvocationOnMock invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;).when(random).nextInt();</span><br><span class="line"></span><br><span class="line">    Assert.assertEquals(<span class="number">1</span>, random.nextInt());</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="donothing-让-void-函数什么都不做">doNothing 让 void 函数什么都不做</h4>
+<p>doNothing 用于让 void 函数什么都不做；因为 mock 对象中，void 函数就是什么都不做，所以该方法更适合 spy 对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testDoNothing</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    ExampleService exampleService = spy(<span class="keyword">new</span> ExampleService());</span><br><span class="line">    exampleService.hello();  <span class="comment">// 会输出 Hello</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 让 hello 什么都不做</span></span><br><span class="line">    doNothing().when(exampleService).hello();</span><br><span class="line">    exampleService.hello(); <span class="comment">// 什么都不输出</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="其他方法">其他方法</h3>
+<h4 id="reset-重置对象">reset 重置对象</h4>
+<p>使用 reset 方法，可以重置之前自定义的返回值和异常：</p>
+<ul>
+<li><strong>reset mock 对象示例</strong></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testResetMock</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    ExampleService exampleService = mock(ExampleService.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// mock 对象方法的默认返回值是返回类型的默认值</span></span><br><span class="line">    Assert.assertEquals(<span class="number">0</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置让 add(1,2) 返回 100</span></span><br><span class="line">    when(exampleService.add(<span class="number">1</span>, <span class="number">2</span>)).thenReturn(<span class="number">100</span>);</span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重置 mock 对象，add(1,2) 返回 0</span></span><br><span class="line">    reset(exampleService);</span><br><span class="line">    Assert.assertEquals(<span class="number">0</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>reset spy 对象示例</strong></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testResetSpy</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    ExampleService exampleService = spy(<span class="keyword">new</span> ExampleService());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// spy 对象方法调用会用真实方法，所以这里返回 3</span></span><br><span class="line">    Assert.assertEquals(<span class="number">3</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置让 add(1,2) 返回 100</span></span><br><span class="line">    when(exampleService.add(<span class="number">1</span>, <span class="number">2</span>)).thenReturn(<span class="number">100</span>);</span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重置 spy 对象，add(1,2) 返回 3</span></span><br><span class="line">    reset(exampleService);</span><br><span class="line">    Assert.assertEquals(<span class="number">3</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="thencallrealmethod-调用-spy-对象的真实方法">thenCallRealMethod 调用 spy 对象的真实方法</h4>
+<p>thenCallRealMethod 可以用来重置 spy 对象的<strong>特定方法特定参数调用</strong>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    ExampleService exampleService = spy(<span class="keyword">new</span> ExampleService());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// spy 对象方法调用会用真实方法，所以这里返回 3</span></span><br><span class="line">    Assert.assertEquals(<span class="number">3</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置让 add(1,2) 返回 100</span></span><br><span class="line">    when(exampleService.add(<span class="number">1</span>, <span class="number">2</span>)).thenReturn(<span class="number">100</span>);</span><br><span class="line">    when(exampleService.add(<span class="number">2</span>, <span class="number">2</span>)).thenReturn(<span class="number">100</span>);</span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, exampleService.add(<span class="number">2</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重置 spy 对象，让 add(1,2) 调用真实方法，返回 3</span></span><br><span class="line">    when(exampleService.add(<span class="number">1</span>, <span class="number">2</span>)).thenCallRealMethod();</span><br><span class="line">    Assert.assertEquals(<span class="number">3</span>, exampleService.add(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// add(2, 2) 还是返回 100</span></span><br><span class="line">    Assert.assertEquals(<span class="number">100</span>, exampleService.add(<span class="number">2</span>, <span class="number">2</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="mockingdetails-判断对象是否为-mock对象spy-对象">mockingDetails 判断对象是否为 mock对象、spy 对象</h4>
+<p>Mockito 的 mockingDetails 方法会返回 MockingDetails 对象，它的 isMock 方法可以判断对象是否为 mock 对象，isSpy 方法可以判断对象是否为 spy 对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMockingDetails</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    ExampleService exampleService = mock(ExampleService.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 判断 exampleService 是否为 mock 对象</span></span><br><span class="line">    System.out.println( mockingDetails(exampleService).isMock() );     <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 判断 exampleService 是否为 spy 对象</span></span><br><span class="line">    System.out.println( mockingDetails(exampleService).isSpy() );      <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="powermock-强化-mockito">PowerMock 强化 Mockito</h3>
+<p>PowerMock 是一个增强库，用来增加 Mockito 、EasyMock 等测试库的功能。</p>
+<h4 id="支持静态方法">支持静态方法</h4>
+<p>Mockito 默认是不支持静态方法，比如我们在 ExampleService 类中定义静态方法 add：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExampleService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a+b;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>尝试给静态方法打桩，会报错：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> org.junit.runner.RunWith;</span><br><span class="line"><span class="keyword">import</span> org.mockito.junit.MockitoJUnitRunner;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.mockito.Mockito.*;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RunWith(MockitoJUnitRunner.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MokitorTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testMock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 会报错</span></span><br><span class="line">        when(ExampleService.add(<span class="number">1</span>, <span class="number">2</span>)).thenReturn(<span class="number">100</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>使用 Powermock 弥补 Mockito 缺失的静态方法 mock 功能</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="powermockrunner-支持-mockito-的-mock-等注解">PowerMockRunner 支持 Mockito 的 <span class="citation" data-cites="Mock">@Mock</span> 等注解</h3>
+<h1 id="mockito-临时-mock-对象">Mockito 临时 mock 对象</h1>
+<h2 id="参考">参考</h2>
+<p>https://zhuanlan.zhihu.com/p/101026707</p>
+<p>https://www.letianbiji.com/java-mockito/mockito-hello-world.html</p>
+<p>https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html</p>
+<p>https://github.com/hehonghui/mockito-doc-zh#0</p>
+
+    </div>
+
+    
+    
+    
+	
+	<div>
+		
+			<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+
+<div>
+    
+       <div style="text-align:center;color:#bfbfbf;font-size:16px;">
+             <span>--- 本文结束 </span>
+             <i class="fa fa-thumbs-o-up"></i>
+             <span> 感谢阅读 ---</span>
+       </div>
+    
+</div>
+		
+	</div>
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Mock/" rel="tag"><i class="fa fa-hand-peace-o" aria-hidden="true"></i> Mock</a>
+              <a href="/tags/Mockito/" rel="tag"><i class="fa fa-hand-peace-o" aria-hidden="true"></i> Mockito</a>
+              <a href="/tags/%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/" rel="tag"><i class="fa fa-hand-peace-o" aria-hidden="true"></i> 测试工具</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/02/06/Java%E5%B9%B6%E5%8F%91/Java%EF%BC%9ATransmittableThreadLocal/" rel="prev" title="Java：TransmittableThreadLocal">
+      <i class="fa fa-chevron-left"></i> Java：TransmittableThreadLocal
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#utilstest-for-mockito"><span class="nav-text">Utils：Test For Mockito</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mockito%E6%A6%82%E8%BF%B0"><span class="nav-text">Mockito概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%A7%BF%E5%8A%BF"><span class="nav-text">使用姿势</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mock%E8%BF%9B%E8%A1%8C%E6%A8%A1%E6%8B%9F"><span class="nav-text">Mock进行模拟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mock%E6%B3%A8%E8%A7%A3"><span class="nav-text">@Mock注解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mockito-spyspy"><span class="nav-text">Mockito spy&amp;@Spy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#injectmocks-%E6%B3%A8%E8%A7%A3"><span class="nav-text">@InjectMocks 注解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E5%8C%B9%E9%85%8D"><span class="nav-text">参数匹配</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B2%BE%E5%87%86%E5%8C%B9%E9%85%8D"><span class="nav-text">精准匹配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E7%B3%8A%E5%8C%B9%E9%85%8D"><span class="nav-text">模糊匹配</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8C%B9%E9%85%8D%E9%A1%BA%E5%BA%8F"><span class="nav-text">匹配顺序</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E8%A1%8C%E4%B8%BA"><span class="nav-text">验证行为</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#verify%E6%A0%A1%E9%AA%8C"><span class="nav-text">verify校验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%AD%E8%A8%80%E6%A0%A1%E9%AA%8C"><span class="nav-text">断言校验</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8%E6%A0%A1%E9%AA%8C"><span class="nav-text">异常校验*</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E6%A1%A9%E4%BD%BF%E7%94%A8"><span class="nav-text">打桩使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#thenreturndoreturn-%E8%AE%BE%E7%BD%AE%E6%96%B9%E6%B3%95%E7%9A%84%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="nav-text">thenReturn&amp;doReturn 设置方法的返回值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#thenthrowdothrow-%E8%AE%A9%E6%96%B9%E6%B3%95%E6%8A%9B%E5%87%BA%E5%BC%82%E5%B8%B8"><span class="nav-text">thenThrow&amp;doThrow 让方法抛出异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#thenthenanswerdoanswer-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%96%B9%E6%B3%95%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-text">then&amp;thenAnswer&amp;doAnswer 自定义方法处理逻辑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#donothing-%E8%AE%A9-void-%E5%87%BD%E6%95%B0%E4%BB%80%E4%B9%88%E9%83%BD%E4%B8%8D%E5%81%9A"><span class="nav-text">doNothing 让 void 函数什么都不做</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E6%96%B9%E6%B3%95"><span class="nav-text">其他方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#reset-%E9%87%8D%E7%BD%AE%E5%AF%B9%E8%B1%A1"><span class="nav-text">reset 重置对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#thencallrealmethod-%E8%B0%83%E7%94%A8-spy-%E5%AF%B9%E8%B1%A1%E7%9A%84%E7%9C%9F%E5%AE%9E%E6%96%B9%E6%B3%95"><span class="nav-text">thenCallRealMethod 调用 spy 对象的真实方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mockingdetails-%E5%88%A4%E6%96%AD%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E4%B8%BA-mock%E5%AF%B9%E8%B1%A1spy-%E5%AF%B9%E8%B1%A1"><span class="nav-text">mockingDetails 判断对象是否为 mock对象、spy 对象</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#powermock-%E5%BC%BA%E5%8C%96-mockito"><span class="nav-text">PowerMock 强化 Mockito</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%AF%E6%8C%81%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95"><span class="nav-text">支持静态方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#powermockrunner-%E6%94%AF%E6%8C%81-mockito-%E7%9A%84-mock-%E7%AD%89%E6%B3%A8%E8%A7%A3"><span class="nav-text">PowerMockRunner 支持 Mockito 的 @Mock 等注解</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mockito-%E4%B8%B4%E6%97%B6-mock-%E5%AF%B9%E8%B1%A1"><span class="nav-text">Mockito 临时 mock 对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZhuCC"
+      src="/images/%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">ZhuCC</p>
+  <div class="site-description" itemprop="description">不急不躁。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">203</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">96</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+	  
+	  
+        <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+        <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+        <div class="widget-wrap">
+            <div id="myCanvasContainer" class="widget tagcloud">
+                <canvas width="250" height="250" id="resCanvas" style="width=100%">
+                    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anaconda/" rel="tag">Anaconda</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Arthas/" rel="tag">Arthas</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAT/" rel="tag">CAT</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Chrome/" rel="tag">Chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELK/" rel="tag">ELK</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Elasticsearch/" rel="tag">Elasticsearch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Elasticsearck/" rel="tag">Elasticsearck</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GPU/" rel="tag">GPU</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gitee/" rel="tag">Gitee</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTP/" rel="tag">HTTP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IO/" rel="tag">IO</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDBC/" rel="tag">JDBC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDK/" rel="tag">JDK</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">74</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E8%AF%AD%E6%B3%95/" rel="tag">Java语法</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/K%E8%BF%91%E9%82%BB/" rel="tag">K近邻</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LeetCode/" rel="tag">LeetCode</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mock/" rel="tag">Mock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mockito/" rel="tag">Mockito</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pytorch/" rel="tag">Pytorch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSM/" rel="tag">SSM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringMVC/" rel="tag">SpringMVC</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP-IP/" rel="tag">TCP/IP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TensorFlow/" rel="tag">TensorFlow</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadLocal/" rel="tag">ThreadLocal</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TortoiseGit/" rel="tag">TortoiseGit</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TransmittableThreadLocal/" rel="tag">TransmittableThreadLocal</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Typora/" rel="tag">Typora</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/" rel="tag">Ubuntu</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nvidia/" rel="tag">nvidia</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%BB%8F%E5%8E%86/" rel="tag">个人经历</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="tag">中间件</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2/" rel="tag">全文检索</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/" rel="tag">决策树</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98/" rel="tag">分类问题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98/" rel="tag">刷题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98%E7%AC%94%E8%AE%B0/" rel="tag">刷题笔记</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A0%E5%AF%86%E6%96%87%E7%AB%A0/" rel="tag">加密文章</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/" rel="tag">博客搭建</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%82%E8%80%83%E6%96%87%E4%BB%B6/" rel="tag">参考文件</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a><span class="tag-list-count">104</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">26</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/" rel="tag">开发框架</a><span class="tag-list-count">31</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%88%90%E9%95%BF%E5%8F%B2/" rel="tag">成长史</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%81%E4%B9%85%E5%B1%82%E6%A1%86%E6%9E%B6/" rel="tag">持久层框架</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E6%8E%A8%E5%AF%BC/" rel="tag">数学推导</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97/" rel="tag">数据清洗</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A5%E5%B8%B8/" rel="tag">日常</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A5%E5%BF%97%E6%A1%86%E6%9E%B6/" rel="tag">日志框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E7%BB%93%E6%9E%84/" rel="tag">树结构</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/" rel="tag">测试工具</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" rel="tag">特征选择</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="tag">环境配置</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag">目标检测</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95/" rel="tag">算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" rel="tag">线性回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%81%9A%E7%B1%BB/" rel="tag">聚类</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%A8%E7%A4%BA%E5%B1%82/" rel="tag">表示层</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E8%B7%AF/" rel="tag">计算机网路</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag">读书笔记</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B0%83%E7%94%A8%E9%93%BE%E7%9B%91%E6%8E%A7/" rel="tag">调用链监控</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="tag">贝叶斯</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8/" rel="tag">软件使用</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/" rel="tag">逻辑回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E5%90%88%E7%B1%BB/" rel="tag">集合类</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" rel="tag">集成学习</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E7%BB%8F/" rel="tag">面经</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E7%AC%94%E8%AE%B0/" rel="tag">面试笔记</a><span class="tag-list-count">61</span></li></ul>
+                </canvas>
+            </div>
+        </div>
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZhuCC</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">3.6m</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">54:48</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : '3it0tVBbppFeFBVa8QgB3vxM-gzGzoHsz',
+      appKey     : '9VtnMWSrhAtC1pSRaA4Rivx9',
+      placeholder: "请多多指教~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"right","hOffset":0,"vOffset":-20},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body>
+</html>

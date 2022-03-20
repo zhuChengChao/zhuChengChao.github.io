@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/Mario.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/Mario.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="记录一种能方便比较两个Java对象异同的方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java：Javers对象比较">
+<meta property="og:url" content="http://example.com/2022/03/20/Java%E5%9F%BA%E7%A1%80/Java%E7%9F%A5%E8%AF%86%E7%82%B9/Java%EF%BC%9AJavers%E5%AF%B9%E8%B1%A1%E6%AF%94%E8%BE%83/index.html">
+<meta property="og:site_name" content="贤余超">
+<meta property="og:description" content="记录一种能方便比较两个Java对象异同的方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-20T02:24:20.000Z">
+<meta property="article:modified_time" content="2022-03-20T02:24:20.000Z">
+<meta property="article:author" content="ZhuCC">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/03/20/Java%E5%9F%BA%E7%A1%80/Java%E7%9F%A5%E8%AF%86%E7%82%B9/Java%EF%BC%9AJavers%E5%AF%B9%E8%B1%A1%E6%AF%94%E8%BE%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java：Javers对象比较 | 贤余超</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+	<a target="_blank" rel="noopener" href="https://github.com/zhuChengChao" class="github-corner" aria-label="View source on GitHub">
+	<svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+	<path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+	<path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+	<path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+	</svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">贤余超</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一位底层码农 :-)</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">100</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">18</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">208</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/20/Java%E5%9F%BA%E7%A1%80/Java%E7%9F%A5%E8%AF%86%E7%82%B9/Java%EF%BC%9AJavers%E5%AF%B9%E8%B1%A1%E6%AF%94%E8%BE%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/%E5%A4%B4%E5%83%8F.jpg">
+      <meta itemprop="name" content="ZhuCC">
+      <meta itemprop="description" content="不急不躁。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贤余超">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java：Javers对象比较
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-03-20 10:24:20" itemprop="dateCreated datePublished" datetime="2022-03-20T10:24:20+08:00">2022-03-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">Java基础</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2022/03/20/Java%E5%9F%BA%E7%A1%80/Java%E7%9F%A5%E8%AF%86%E7%82%B9/Java%EF%BC%9AJavers%E5%AF%B9%E8%B1%A1%E6%AF%94%E8%BE%83/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2022/03/20/Java%E5%9F%BA%E7%A1%80/Java%E7%9F%A5%E8%AF%86%E7%82%B9/Java%EF%BC%9AJavers%E5%AF%B9%E8%B1%A1%E6%AF%94%E8%BE%83/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>17k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>16 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录一种能方便比较两个Java对象异同的方法。</p>
+<span id="more"></span>
+<h1 id="javajavers进行对象比较">Java：Javers进行对象比较</h1>
+<p>日常开发中，不可避免的存在要对两个对象进行比较，当然可以通过遍历对象中的所有值进行一个比较，最近发现了一个较为快捷的比较方式，通过借助于一个package：<strong>JaVers</strong>。</p>
+<h2 id="基础使用">基础使用</h2>
+<p><strong>导包</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.javers<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javers-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>6.6.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>最基础的进行对象之间的比较：</strong></p>
+<blockquote>
+<p>使用 <code>javers.compare(Object, Object)</code> 进行比较，实则使用的是对应的 equal 方法进行比较。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义类：</span></span><br><span class="line"><span class="meta">@Builder</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Address</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String city;</span><br><span class="line">    <span class="keyword">private</span> String street;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 比较两个类</span></span><br><span class="line">Address address1 = <span class="keyword">new</span> Address(<span class="string">&quot;New York&quot;</span>,<span class="string">&quot;5th Avenue&quot;</span>);</span><br><span class="line">Address address2 = <span class="keyword">new</span> Address(<span class="string">&quot;New York&quot;</span>,<span class="string">&quot;6th Avenue&quot;</span>);</span><br><span class="line"></span><br><span class="line">Javers javers = JaversBuilder.javers().build();</span><br><span class="line">Diff diff = javers.compare(address1, address2);</span><br><span class="line">ValueChange change = diff.getChangesByType(ValueChange.class).get(<span class="number">0</span>);</span><br><span class="line">System.out.println(diff);</span><br></pre></td></tr></table></figure>
+<p><strong>输出比较结果：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Diff:</span><br><span class="line">* changes on cn.xyc.domain.Address/ :</span><br><span class="line">  - <span class="string">&#x27;street&#x27;</span> changed: <span class="string">&#x27;5th Avenue&#x27;</span> -&gt; <span class="string">&#x27;6th Avenue&#x27;</span></span><br></pre></td></tr></table></figure>
+<h2 id="examples-diff"><a target="_blank" rel="noopener" href="https://javers.org/documentation/diff-examples">Examples — Diff</a></h2>
+<p>这部分内容就摘录一些官网文档中的一些内容</p>
+<h3 id="compare-two-entity-objects"><a target="_blank" rel="noopener" href="https://javers.org/documentation/diff-examples/#compare-entities">Compare two Entity objects</a></h3>
+<blockquote>
+<p>先定义一下对象：<code>Employee.java</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.xyc.domain;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.AllArgsConstructor;</span><br><span class="line"><span class="keyword">import</span> lombok.Builder;</span><br><span class="line"><span class="keyword">import</span> org.javers.core.metamodel.annotation.Id;</span><br><span class="line"><span class="keyword">import</span> org.javers.core.metamodel.annotation.TypeName;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.Set;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Builder</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="meta">@TypeName(&quot;Employee&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Employee</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> PositionEnum position;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> salary;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">private</span> Employee boss;</span><br><span class="line">    <span class="keyword">private</span> List&lt;Employee&gt; subordinates;</span><br><span class="line">    <span class="keyword">private</span> Address primaryAddress;</span><br><span class="line">    <span class="keyword">private</span> Set&lt;String&gt; skills;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Employee</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Employee</span><span class="params">(String name, <span class="keyword">int</span> salary)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.salary = salary;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Employee <span class="title">addSubordinate</span><span class="params">(Employee employee)</span> </span>&#123;</span><br><span class="line">        employee.boss = <span class="keyword">this</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(subordinates == <span class="keyword">null</span>)&#123;</span><br><span class="line">            subordinates = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        &#125;</span><br><span class="line">        subordinates.add(employee);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Employee <span class="title">addSubordinates</span><span class="params">(Employee... employees)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (Employee e : employees)&#123;</span><br><span class="line">            addSubordinate(e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Employee&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;name=&#x27;&quot;</span> + name + <span class="string">&#x27;\&#x27;&#x27;</span> +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>定义类：<code>Address.java</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.xyc.domain;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.AllArgsConstructor;</span><br><span class="line"><span class="keyword">import</span> lombok.Builder;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Builder</span></span><br><span class="line"><span class="meta">@AllArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Address</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String city;</span><br><span class="line">    <span class="keyword">private</span> String street;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Address</span><span class="params">(String city)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.city = city;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>定义枚举：<code>PositionEnum.java</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.xyc.domain;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">enum</span>  <span class="title">PositionEnum</span> </span>&#123;</span><br><span class="line">    Assistant,</span><br><span class="line">    Secretary,</span><br><span class="line">    Developer,</span><br><span class="line">    Specialist,</span><br><span class="line">    Saleswoman,</span><br><span class="line">    ScrumMaster,</span><br><span class="line">    Townsman,</span><br><span class="line">    Hero,</span><br><span class="line">    Trainee</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p><strong>正式开始比较：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 两个实体类，这里表示同一个人</span></span><br><span class="line">Employee employeeOld = Employee.builder()</span><br><span class="line">    .name(<span class="string">&quot;zhangsan&quot;</span>)</span><br><span class="line">    .age(<span class="number">20</span>)</span><br><span class="line">    .salary(<span class="number">1000</span>)</span><br><span class="line">    .position(PositionEnum.Townsman)</span><br><span class="line">    .primaryAddress(<span class="keyword">new</span> Address(<span class="string">&quot;hangzhou&quot;</span>))</span><br><span class="line">    .skills(Sets.asSet(<span class="string">&quot;management&quot;</span>))</span><br><span class="line">    .subordinates(Lists.asList(<span class="keyword">new</span> Employee(<span class="string">&quot;lisi&quot;</span>)))</span><br><span class="line">    .build();</span><br><span class="line"></span><br><span class="line">Employee employeeNew = Employee.builder()</span><br><span class="line">    .name(<span class="string">&quot;zhangsan&quot;</span>)</span><br><span class="line">    .age(<span class="number">21</span>)</span><br><span class="line">    .salary(<span class="number">1500</span>)</span><br><span class="line">    .position(PositionEnum.Hero)</span><br><span class="line">    .boss(<span class="keyword">new</span> Employee(<span class="string">&quot;wangwu&quot;</span>))</span><br><span class="line">    .position(PositionEnum.Townsman)</span><br><span class="line">    .primaryAddress(<span class="keyword">new</span> Address(<span class="string">&quot;beijing&quot;</span>))</span><br><span class="line">    .skills(Sets.asSet(<span class="string">&quot;management&quot;</span>, <span class="string">&quot;agile coaching&quot;</span>))</span><br><span class="line">    .subordinates(Lists.asList(<span class="keyword">new</span> Employee(<span class="string">&quot;lisi&quot;</span>), <span class="keyword">new</span> Employee(<span class="string">&quot;zhaoliu&quot;</span>)))</span><br><span class="line">    .build();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建Javer</span></span><br><span class="line">Javers javers = JaversBuilder.javers().build();</span><br><span class="line"><span class="comment">// 比较不同</span></span><br><span class="line">Diff diff = javers.compare(employeeOld, employeeNew);</span><br><span class="line"><span class="comment">// 判断是否改变</span></span><br><span class="line">System.out.println(<span class="string">&quot;是否改变：&quot;</span> + diff.hasChanges());</span><br><span class="line"><span class="comment">// 输出改变的内容</span></span><br><span class="line">System.out.println(<span class="string">&quot;改变内容：&quot;</span> + diff);</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">是否改变：<span class="literal">true</span></span><br><span class="line">改变内容：Diff:</span><br><span class="line">* new object: Employee/zhaoliu</span><br><span class="line">  - <span class="string">&#x27;name&#x27;</span> = <span class="string">&#x27;zhaoliu&#x27;</span></span><br><span class="line">* changes on Employee/zhangsan :</span><br><span class="line">  - <span class="string">&#x27;age&#x27;</span> changed: <span class="string">&#x27;20&#x27;</span> -&gt; <span class="string">&#x27;21&#x27;</span>   <span class="comment"># 属性 changed 原值 -&gt; 新值</span></span><br><span class="line">  - <span class="string">&#x27;boss&#x27;</span> = <span class="string">&#x27;Employee/wangwu&#x27;</span></span><br><span class="line">  - <span class="string">&#x27;primaryAddress.city&#x27;</span> changed: <span class="string">&#x27;hangzhou&#x27;</span> -&gt; <span class="string">&#x27;beijing&#x27;</span></span><br><span class="line">  - <span class="string">&#x27;salary&#x27;</span> changed: <span class="string">&#x27;1000&#x27;</span> -&gt; <span class="string">&#x27;1500&#x27;</span></span><br><span class="line">  - <span class="string">&#x27;skills&#x27;</span> collection changes :</span><br><span class="line">     · <span class="string">&#x27;agile coaching&#x27;</span> added</span><br><span class="line">  - <span class="string">&#x27;subordinates&#x27;</span> collection changes :</span><br><span class="line">     1. <span class="string">&#x27;Employee/zhaoliu&#x27;</span> added</span><br><span class="line">* new object: Employee/wangwu</span><br><span class="line">  - <span class="string">&#x27;name&#x27;</span> = <span class="string">&#x27;wangwu&#x27;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>不同类型的输出结果：</p>
+<ul>
+<li>遍历修改结果：<code>diff.getChanges().forEach(change -&gt; System.out.println(&quot;- &quot; + change));</code></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">iterating over changes:</span><br><span class="line">    - NewObject&#123; new object: Employee/wangwu &#125;</span><br><span class="line">    - NewObject&#123; new object: Employee/zhaoliu &#125;</span><br><span class="line">    - InitialValueChange&#123; property: <span class="string">&#x27;name&#x27;</span>, left:<span class="string">&#x27;&#x27;</span>,  right:<span class="string">&#x27;zhaoliu&#x27;</span> &#125;</span><br><span class="line">    - InitialValueChange&#123; property: <span class="string">&#x27;name&#x27;</span>, left:<span class="string">&#x27;&#x27;</span>,  right:<span class="string">&#x27;wangwu&#x27;</span> &#125;</span><br><span class="line">    - ValueChange&#123; property: <span class="string">&#x27;salary&#x27;</span>, left:<span class="string">&#x27;1000&#x27;</span>,  right:<span class="string">&#x27;1500&#x27;</span> &#125;</span><br><span class="line">    - ValueChange&#123; property: <span class="string">&#x27;age&#x27;</span>, left:<span class="string">&#x27;20&#x27;</span>,  right:<span class="string">&#x27;21&#x27;</span> &#125;</span><br><span class="line">    - ReferenceChange&#123; property: <span class="string">&#x27;boss&#x27;</span>, left:<span class="string">&#x27;&#x27;</span>,  right:<span class="string">&#x27;Employee/wangwu&#x27;</span> &#125;</span><br><span class="line">    - ListChange&#123; property: <span class="string">&#x27;subordinates&#x27;</span>, elementChanges:1, left.size: 1, right.size: 2&#125;</span><br><span class="line">    - SetChange&#123; property: <span class="string">&#x27;skills&#x27;</span>, elementChanges:1, left.size: 1, right.size: 2&#125;</span><br><span class="line">    - ValueChange&#123; property: <span class="string">&#x27;city&#x27;</span>, left:<span class="string">&#x27;hangzhou&#x27;</span>,  right:<span class="string">&#x27;beijing&#x27;</span> &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>按照修改对象分组：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(<span class="string">&quot;iterating over changes grouped by objects&quot;</span>);</span><br><span class="line">diff.groupByObject().forEach(byObject -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;* changes on &quot;</span> +byObject.getGlobalId().value() + <span class="string">&quot; : &quot;</span>);</span><br><span class="line">    byObject.get().forEach(change -&gt; System.out.println(<span class="string">&quot;  - &quot;</span> + change));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">iterating over changes grouped by objects</span><br><span class="line">* changes on Employee/zhaoliu : </span><br><span class="line">  - NewObject&#123; new object: Employee/zhaoliu &#125;</span><br><span class="line">  - InitialValueChange&#123; property: <span class="string">&#x27;name&#x27;</span>, left:<span class="string">&#x27;&#x27;</span>,  right:<span class="string">&#x27;zhaoliu&#x27;</span> &#125;</span><br><span class="line">* changes on Employee/zhangsan : </span><br><span class="line">  - ValueChange&#123; property: <span class="string">&#x27;salary&#x27;</span>, left:<span class="string">&#x27;1000&#x27;</span>,  right:<span class="string">&#x27;1500&#x27;</span> &#125;</span><br><span class="line">  - ValueChange&#123; property: <span class="string">&#x27;age&#x27;</span>, left:<span class="string">&#x27;20&#x27;</span>,  right:<span class="string">&#x27;21&#x27;</span> &#125;</span><br><span class="line">  - ReferenceChange&#123; property: <span class="string">&#x27;boss&#x27;</span>, left:<span class="string">&#x27;&#x27;</span>,  right:<span class="string">&#x27;Employee/wangwu&#x27;</span> &#125;</span><br><span class="line">  - ListChange&#123; property: <span class="string">&#x27;subordinates&#x27;</span>, elementChanges:1, left.size: 1, right.size: 2&#125;</span><br><span class="line">  - SetChange&#123; property: <span class="string">&#x27;skills&#x27;</span>, elementChanges:1, left.size: 1, right.size: 2&#125;</span><br><span class="line">  - ValueChange&#123; property: <span class="string">&#x27;city&#x27;</span>, left:<span class="string">&#x27;hangzhou&#x27;</span>,  right:<span class="string">&#x27;beijing&#x27;</span> &#125;</span><br><span class="line">* changes on Employee/wangwu : </span><br><span class="line">  - NewObject&#123; new object: Employee/wangwu &#125;</span><br><span class="line">  - InitialValueChange&#123; property: <span class="string">&#x27;name&#x27;</span>, left:<span class="string">&#x27;&#x27;</span>,  right:<span class="string">&#x27;wangwu&#x27;</span> &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>输出JSON格式：<code>System.out.println(javers.getJsonConverter().toJson(diff));</code></li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;changes&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;changeType&quot;</span>: <span class="string">&quot;NewObject&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;globalId&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;entity&quot;</span>: <span class="string">&quot;Employee&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;cdoId&quot;</span>: <span class="string">&quot;wangwu&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h3 id="compare-graphs"><a target="_blank" rel="noopener" href="https://javers.org/documentation/diff-examples/#compare-graphs">Compare graphs</a></h3>
+<p>这里还是用员工类进行说明</p>
+<ul>
+<li><strong>新增对象（员工雇佣）</strong></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shouldDetectHired</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Employee oldBoss = <span class="keyword">new</span> Employee(<span class="string">&quot;Big Boss&quot;</span>).addSubordinates(</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Great Developer&quot;</span>));</span><br><span class="line"></span><br><span class="line">    Employee newBoss = <span class="keyword">new</span> Employee(<span class="string">&quot;Big Boss&quot;</span>).addSubordinates(</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Great Developer&quot;</span>),</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Hired One&quot;</span>),</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Hired Second&quot;</span>));</span><br><span class="line"></span><br><span class="line">    Javers javers = JaversBuilder.javers().build();</span><br><span class="line">    Diff diff = javers.compare(oldBoss, newBoss);</span><br><span class="line">    List changes = diff.getObjectsByChangeType(NewObject.class);</span><br><span class="line">    changes.stream().forEach(System.out::println);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出:</span></span><br><span class="line"><span class="comment">// Employee&#123;name=&#x27;Hired Second&#x27;&#125;</span></span><br><span class="line"><span class="comment">// Employee&#123;name=&#x27;Hired One&#x27;&#125;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>减少对象（无情优化）</strong></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shouldDetectFired</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Employee oldBoss = <span class="keyword">new</span> Employee(<span class="string">&quot;Big Boss&quot;</span>).addSubordinates(</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Great Developer&quot;</span>),</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Team Lead&quot;</span>).addSubordinates(</span><br><span class="line">            <span class="keyword">new</span> Employee(<span class="string">&quot;Another Dev&quot;</span>),</span><br><span class="line">            <span class="keyword">new</span> Employee(<span class="string">&quot;To Be Fired&quot;</span>)</span><br><span class="line">        ));</span><br><span class="line"></span><br><span class="line">    Employee newBoss = <span class="keyword">new</span> Employee(<span class="string">&quot;Big Boss&quot;</span>).addSubordinates(</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Great Developer&quot;</span>),</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Team Lead&quot;</span>).addSubordinates(</span><br><span class="line">            <span class="keyword">new</span> Employee(<span class="string">&quot;Another Dev&quot;</span>)</span><br><span class="line">        ));</span><br><span class="line"></span><br><span class="line">    Javers javers = JaversBuilder.javers().build();</span><br><span class="line">    Diff diff = javers.compare(oldBoss, newBoss);</span><br><span class="line"></span><br><span class="line">    List&lt;ObjectRemoved&gt; changes = diff.getChangesByType(ObjectRemoved.class);</span><br><span class="line">    System.out.println(changes);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出：[ObjectRemoved&#123; object removed: Employee/To Be Fired &#125;]</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>薪水修改</strong></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shouldDetectSalaryChange</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    Employee oldBoss = <span class="keyword">new</span> Employee(<span class="string">&quot;Big Boss&quot;</span>).addSubordinates(</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Noisy Manager&quot;</span>),</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Great Developer&quot;</span>, <span class="number">10000</span>));</span><br><span class="line"></span><br><span class="line">    Employee newBoss = <span class="keyword">new</span> Employee(<span class="string">&quot;Big Boss&quot;</span>).addSubordinates(</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Noisy Manager&quot;</span>),</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Great Developer&quot;</span>, <span class="number">20000</span>));</span><br><span class="line"></span><br><span class="line">    Javers javers = JaversBuilder.javers().build();</span><br><span class="line">    Diff diff = javers.compare(oldBoss, newBoss);</span><br><span class="line">    ValueChange change =  diff.getChangesByType(ValueChange.class).get(<span class="number">0</span>);</span><br><span class="line">    System.out.println(change);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出：ValueChange&#123; property: &#x27;salary&#x27;, left:&#x27;10000&#x27;,  right:&#x27;20000&#x27; &#125;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>换个老板</strong></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">shouldDetectBossChange</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Employee oldBoss = <span class="keyword">new</span> Employee(<span class="string">&quot;Big Boss&quot;</span>).addSubordinates(</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Manager One&quot;</span>)</span><br><span class="line">        .addSubordinate(<span class="keyword">new</span> Employee(<span class="string">&quot;Great Developer&quot;</span>)),</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Manager Second&quot;</span>));</span><br><span class="line"></span><br><span class="line">    Employee newBoss = <span class="keyword">new</span> Employee(<span class="string">&quot;Big Boss&quot;</span>).addSubordinates(</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Manager One&quot;</span>),</span><br><span class="line">        <span class="keyword">new</span> Employee(<span class="string">&quot;Manager Second&quot;</span>)</span><br><span class="line">        .addSubordinate(<span class="keyword">new</span> Employee(<span class="string">&quot;Great Developer&quot;</span>)));</span><br><span class="line"></span><br><span class="line">    Javers javers = JaversBuilder.javers().build();</span><br><span class="line">    Diff diff = javers.compare(oldBoss, newBoss);</span><br><span class="line"></span><br><span class="line">    ReferenceChange change = diff.getChangesByType(ReferenceChange.class).get(<span class="number">0</span>);</span><br><span class="line">    System.out.println(change);</span><br><span class="line">    System.out.println(diff);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出：</span></span><br><span class="line"><span class="comment">// ReferenceChange&#123; property: &#x27;boss&#x27;, left:&#x27;Employee/Manager One&#x27;,  right:&#x27;Employee/Manager Second&#x27; &#125;</span></span><br><span class="line"><span class="comment">// Diff:</span></span><br><span class="line"><span class="comment">// * changes on Employee/Manager One :</span></span><br><span class="line"><span class="comment">//   - &#x27;subordinates&#x27; collection changes :</span></span><br><span class="line"><span class="comment">//      0. &#x27;Employee/Great Developer&#x27; removed</span></span><br><span class="line"><span class="comment">// * changes on Employee/Great Developer :</span></span><br><span class="line"><span class="comment">//   - &#x27;boss&#x27; reference changed: &#x27;Employee/Manager One&#x27; -&gt; &#x27;Employee/Manager Second&#x27;</span></span><br><span class="line"><span class="comment">// * changes on Employee/Manager Second :</span></span><br><span class="line"><span class="comment">//   - &#x27;subordinates&#x27; collection changes :</span></span><br><span class="line"><span class="comment">//      0. &#x27;Employee/Great Developer&#x27; added</span></span><br></pre></td></tr></table></figure>
+<h3 id="compare-top-level-collections"><a target="_blank" rel="noopener" href="https://javers.org/documentation/diff-examples/#compare-valueobjects">Compare top-level collections</a></h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Person中有两个String，第一个值上加了@Id的注解</span></span><br><span class="line">List&lt;Person&gt; oldList = Lists.asList( <span class="keyword">new</span> Person(<span class="string">&quot;tommy&quot;</span>, <span class="string">&quot;Tommy Smart&quot;</span>) );</span><br><span class="line">List&lt;Person&gt; newList = Lists.asList( <span class="keyword">new</span> Person(<span class="string">&quot;tommy&quot;</span>, <span class="string">&quot;Tommy C. Smart&quot;</span>) );</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>不指定类型：<code>javers.compare(Object, Object)</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Diff diff = javers.compare(oldList, newList);</span><br><span class="line">System.out.println(diff);</span><br><span class="line"></span><br><span class="line"><span class="comment">// # 输出：</span></span><br><span class="line"><span class="comment">// Diff:</span></span><br><span class="line"><span class="comment">// * changes on org.javers.core.graph.LiveGraphFactory$ListWrapper/ :</span></span><br><span class="line"><span class="comment">//   - &#x27;list&#x27; collection changes :</span></span><br><span class="line"><span class="comment">//      0. &#x27;Person&#123;login=&#x27;tommy&#x27;, name=&#x27;Tommy Smart&#x27;, position=null&#125;&#x27; changed to &#x27;Person&#123;login=&#x27;tommy&#x27;, name=&#x27;Tommy C. Smart&#x27;, position=null&#125;&#x27;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>指定类型：<code>javers.compareCollections(Collection, Collection, Class)</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Diff diff = javers.compareCollections(oldList, newList, Person.class);</span><br><span class="line"><span class="comment">//there should be one change of type &#123;@link ValueChange&#125;</span></span><br><span class="line">List&lt;ValueChange&gt; changesByType = diff.getChangesByType(ValueChange.class);</span><br><span class="line">System.out.println(changesByType.size());  <span class="comment">// 1</span></span><br><span class="line">System.out.println(changesByType.get(<span class="number">0</span>).getPropertyName());  <span class="comment">// name</span></span><br><span class="line">System.out.println(changesByType.get(<span class="number">0</span>).getLeft());  <span class="comment">// Tommy Smart</span></span><br><span class="line">System.out.println(changesByType.get(<span class="number">0</span>).getRight());  <span class="comment">// Tommy C. Smart</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">System.out.println(diff);</span><br><span class="line"><span class="comment">// Diff:</span></span><br><span class="line"><span class="comment">// * changes on cn.xyc.domain.Person/tommy :</span></span><br><span class="line"><span class="comment">// 	- &#x27;name&#x27; changed: &#x27;Tommy Smart&#x27; -&gt; &#x27;Tommy C. Smart&#x27;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>可以对比一下上面的不同点：</p>
+<ul>
+<li>第一个使用了<code>javers.compare</code>，直接把List中的Person作为一个整体进行比较，即按照List的维度去比较；</li>
+<li>第二使用了<code>javers.compareCollections</code>，按照Person维度进行比较；</li>
+</ul>
+<h3 id="groovy-diff-example"><a target="_blank" rel="noopener" href="https://javers.org/documentation/diff-examples/#groovy-diff-example">Groovy diff example</a></h3>
+<p>JaVers 很好的适配了 Groovy</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.xyc</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.javers.core.JaversBuilder</span><br><span class="line"><span class="keyword">import</span> groovy.transform.TupleConstructor</span><br><span class="line"><span class="keyword">import</span> org.javers.core.metamodel.annotation.Id</span><br><span class="line"><span class="keyword">import</span> spock.lang.Specification</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GroovyDiffExample</span> <span class="keyword">extends</span> <span class="title">Specification</span> &#123;</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@TupleConstructor</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Person</span> &#123;</span></span><br><span class="line">        <span class="meta">@Id</span> login</span><br><span class="line">        String lastName</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="string">&quot;should calculate diff for GroovyObjects&quot;</span>()&#123;</span><br><span class="line">        <span class="symbol">given:</span></span><br><span class="line">        <span class="keyword">def</span> javers = JaversBuilder.javers().build()</span><br><span class="line"></span><br><span class="line">        <span class="symbol">when:</span></span><br><span class="line">        <span class="keyword">def</span> diff = javers.compare(</span><br><span class="line">                <span class="keyword">new</span> Person(<span class="string">&#x27;bob&#x27;</span>,<span class="string">&#x27;Uncle&#x27;</span>),</span><br><span class="line">                <span class="keyword">new</span> Person(<span class="string">&#x27;bob&#x27;</span>,<span class="string">&#x27;Martin&#x27;</span>)</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="symbol">then:</span></span><br><span class="line">        diff.changes.size() == <span class="number">1</span></span><br><span class="line">        diff.changes[<span class="number">0</span>].left == <span class="string">&#x27;Uncle&#x27;</span></span><br><span class="line">        diff.changes[<span class="number">0</span>].right == <span class="string">&#x27;Martin&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>使用 Groovy 记得导包：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--groovy依赖--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.groovy<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>groovy-all<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.4.15<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--spock依赖--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.spockframework<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spock-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.3-groovy-2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<h3 id="custom-value-comparator-example"><a target="_blank" rel="noopener" href="https://javers.org/documentation/diff-examples/#custom-value-comparator-example">Custom Value comparator example</a></h3>
+<p>这里给了一个对于BigDecimal的比较，直接使用 <code>javers.compare</code> 比较BigDecimal是无法比较的，会报错的...不支持的，这里给出了两个比较方法：</p>
+<ul>
+<li><p>四舍五入式的：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ValueObject</span> &#123;</span></span><br><span class="line">    BigDecimal value</span><br><span class="line">    List&lt;BigDecimal&gt; values</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="string">&quot;should compare BigDecimal properties with desired precision&quot;</span>()&#123;</span><br><span class="line">    <span class="symbol">given:</span></span><br><span class="line">        <span class="keyword">def</span> javers = JaversBuilder.javers()</span><br><span class="line">        .registerValue(BigDecimal, <span class="keyword">new</span> CustomBigDecimalComparator(<span class="number">2</span>)).build()</span><br><span class="line"></span><br><span class="line">    <span class="symbol">expect:</span></span><br><span class="line">        javers.compare(<span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.123</span>), <span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.124</span>)).changes.size() == <span class="number">0</span></span><br><span class="line">    javers.compare(<span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.12</span>),  <span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.13</span>)).changes.size()  == <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在类<code>CustomBigDecimalComparator.java</code>内部</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomBigDecimalComparator</span> <span class="keyword">implements</span> <span class="title">CustomValueComparator</span>&lt;<span class="title">BigDecimal</span>&gt;</span>&#123;</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(BigDecimal a, BigDecimal b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> round(a).equals(round(b));</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote></li>
+<li><p>真实比较</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="string">&quot;should compare BigDecimal with fixed equals&quot;</span>() &#123;</span><br><span class="line">    <span class="symbol">when:</span> <span class="string">&quot;comparing using BigDecimal.equals()&quot;</span></span><br><span class="line">    <span class="keyword">def</span> javers = JaversBuilder.javers().build()</span><br><span class="line"></span><br><span class="line">    <span class="symbol">then:</span></span><br><span class="line">    javers.compare(<span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.000</span>), <span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.00</span>)).changes.size() == <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    <span class="symbol">when:</span> <span class="string">&quot;comparing using arithmetical equals()&quot;</span></span><br><span class="line">    javers = JaversBuilder.javers()</span><br><span class="line">            .registerValue(BigDecimal, <span class="keyword">new</span> BigDecimalComparatorWithFixedEquals())</span><br><span class="line">            .build()</span><br><span class="line"></span><br><span class="line">    <span class="symbol">then:</span></span><br><span class="line">    javers.compare(<span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.000</span>), <span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.00</span>)).changes.size() == <span class="number">0</span></span><br><span class="line">    javers.compare(<span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.100</span>), <span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="number">1.20</span>)).changes.size() == <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在类<code>BigDecimalComparatorWithFixedEquals.java</code>内部</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BigDecimalComparatorWithFixedEquals</span> <span class="keyword">implements</span> <span class="title">CustomValueComparator</span>&lt;<span class="title">BigDecimal</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(BigDecimal a, BigDecimal b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a.compareTo(b) == <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">(BigDecimal value)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> value.stripTrailingZeros().toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote></li>
+</ul>
+<h3 id="custom-property-comparator-example"><a target="_blank" rel="noopener" href="https://javers.org/documentation/diff-examples/#custom-property-comparator-example">Custom Property comparator example</a></h3>
+<p>自定义比较器来实现一个比较操作：</p>
+<ul>
+<li>自定义比较类的实现，代码中很容易看出其是干啥</li>
+</ul>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.xyc</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.javers.common.collections.Sets</span><br><span class="line"><span class="keyword">import</span> org.javers.core.diff.changetype.PropertyChangeMetadata</span><br><span class="line"><span class="keyword">import</span> org.javers.core.diff.changetype.container.ContainerElementChange</span><br><span class="line"><span class="keyword">import</span> org.javers.core.diff.changetype.container.SetChange</span><br><span class="line"><span class="keyword">import</span> org.javers.core.diff.changetype.container.ValueAdded</span><br><span class="line"><span class="keyword">import</span> org.javers.core.diff.changetype.container.ValueRemoved</span><br><span class="line"><span class="keyword">import</span> org.javers.core.diff.custom.CustomPropertyComparator</span><br><span class="line"><span class="keyword">import</span> org.javers.core.metamodel.property.Property</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FunnyStringComparator</span> <span class="keyword">implements</span> <span class="title">CustomPropertyComparator</span>&lt;<span class="title">String</span>, <span class="title">SetChange</span>&gt; &#123;</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    Optional&lt;SetChange&gt; compare(String left, String right, PropertyChangeMetadata metadata, Property property) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (equals(left, right)) &#123;</span><br><span class="line">            <span class="keyword">return</span> Optional.empty()</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Set leftSet = left.toCharArray().toSet()</span><br><span class="line">        Set rightSet = right.toCharArray().toSet()</span><br><span class="line"></span><br><span class="line">        List&lt;ContainerElementChange&gt; changes = []</span><br><span class="line">        Sets.difference(leftSet, rightSet).forEach&#123; c -&gt; changes.add(<span class="keyword">new</span> ValueRemoved(c))&#125;</span><br><span class="line">        Sets.difference(rightSet, leftSet).forEach&#123;c -&gt; changes.add(<span class="keyword">new</span> ValueAdded(c))&#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> Optional.of(<span class="keyword">new</span> SetChange(metadata, changes))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">boolean</span> equals(String a, String b) &#123;</span><br><span class="line">        a.toCharArray().toSet() == b.toCharArray().toSet()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    String toString(String value) &#123;</span><br><span class="line">        <span class="keyword">return</span> value</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对上述自定义比较器进行一个测试</li>
+</ul>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> cn.xyc</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.javers.core.JaversBuilder</span><br><span class="line"><span class="keyword">import</span> org.javers.core.diff.changetype.container.SetChange</span><br><span class="line"><span class="keyword">import</span> spock.lang.Specification</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FunnyStringComparatorTest</span> <span class="keyword">extends</span> <span class="title">Specification</span> &#123;</span></span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">ValueObject</span> &#123;</span></span><br><span class="line">        String value</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="string">&quot;should use FunnyStringComparator to compare String properties&quot;</span>()&#123;</span><br><span class="line">        <span class="symbol">given:</span></span><br><span class="line">        <span class="keyword">def</span> javers = JaversBuilder.javers()</span><br><span class="line">                .registerCustomType(String, <span class="keyword">new</span> FunnyStringComparator()).build()</span><br><span class="line"></span><br><span class="line">        <span class="symbol">when:</span></span><br><span class="line">        <span class="keyword">def</span> diff = javers.compare(<span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="string">&quot;aaa&quot;</span>), <span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="string">&quot;a&quot;</span>))</span><br><span class="line">        println <span class="string">&quot;first diff: &quot;</span>+ diff</span><br><span class="line"></span><br><span class="line">        <span class="symbol">then:</span></span><br><span class="line">        diff.changes.size() == <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        <span class="symbol">when:</span></span><br><span class="line">        diff = javers.compare(<span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="string">&quot;aaa&quot;</span>), <span class="keyword">new</span> ValueObject(<span class="attr">value:</span> <span class="string">&quot;b&quot;</span>))</span><br><span class="line">        println <span class="string">&quot;second diff: &quot;</span>+ diff</span><br><span class="line"></span><br><span class="line">        <span class="symbol">then:</span></span><br><span class="line">        diff.changes.size() == <span class="number">1</span></span><br><span class="line">        diff.changes[<span class="number">0</span>] <span class="keyword">instanceof</span> SetChange</span><br><span class="line">        diff.changes[<span class="number">0</span>].changes.size() == <span class="number">2</span> <span class="comment">// two item changes in this SetChange</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>至此使用 JaVer 进行对象比较差不多就结束了 Over，当然还可以借助于 SpringBoot 等框架来实现比较之类的，但这里就不再展开了。</p>
+<h2 id="参考">参考</h2>
+<p>Javers官网：https://javers.org/</p>
+<p>https://javers.org/documentation/getting-started/</p>
+<p>https://javers.org/documentation/diff-examples/</p>
+
+    </div>
+
+    
+    
+    
+	
+	<div>
+		
+			<link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
+
+<div>
+    
+       <div style="text-align:center;color:#bfbfbf;font-size:16px;">
+             <span>--- 本文结束 </span>
+             <i class="fa fa-thumbs-o-up"></i>
+             <span> 感谢阅读 ---</span>
+       </div>
+    
+</div>
+		
+	</div>
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-hand-peace-o" aria-hidden="true"></i> Java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/13/%E4%B8%AA%E4%BA%BA%E7%BB%8F%E5%8E%86/%E6%97%A5%E5%B8%B8/%E6%97%A5%E5%B8%B8%EF%BC%9A%E5%B0%8F%E8%B6%85%E7%9A%84%E4%B8%80%E5%91%A8%E5%81%87%E6%9C%9F/" rel="prev" title="日常：小超的一周假期">
+      <i class="fa fa-chevron-left"></i> 日常：小超的一周假期
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#javajavers%E8%BF%9B%E8%A1%8C%E5%AF%B9%E8%B1%A1%E6%AF%94%E8%BE%83"><span class="nav-text">Java：Javers进行对象比较</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8"><span class="nav-text">基础使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#examples-diff"><span class="nav-text">Examples — Diff</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#compare-two-entity-objects"><span class="nav-text">Compare two Entity objects</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#compare-graphs"><span class="nav-text">Compare graphs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#compare-top-level-collections"><span class="nav-text">Compare top-level collections</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#groovy-diff-example"><span class="nav-text">Groovy diff example</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#custom-value-comparator-example"><span class="nav-text">Custom Value comparator example</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#custom-property-comparator-example"><span class="nav-text">Custom Property comparator example</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZhuCC"
+      src="/images/%E5%A4%B4%E5%83%8F.jpg">
+  <p class="site-author-name" itemprop="name">ZhuCC</p>
+  <div class="site-description" itemprop="description">不急不躁。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">208</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">100</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+	  
+	  
+        <script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+        <script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+        <div class="widget-wrap">
+            <div id="myCanvasContainer" class="widget tagcloud">
+                <canvas width="250" height="250" id="resCanvas" style="width=100%">
+                    <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Anaconda/" rel="tag">Anaconda</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Arthas/" rel="tag">Arthas</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C++</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAT/" rel="tag">CAT</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Chrome/" rel="tag">Chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ELK/" rel="tag">ELK</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Elasticsearch/" rel="tag">Elasticsearch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Elasticsearck/" rel="tag">Elasticsearck</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GPU/" rel="tag">GPU</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gitee/" rel="tag">Gitee</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Groovy/" rel="tag">Groovy</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTP/" rel="tag">HTTP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IO/" rel="tag">IO</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDBC/" rel="tag">JDBC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JDK/" rel="tag">JDK</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">77</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E8%AF%AD%E6%B3%95/" rel="tag">Java语法</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/K%E8%BF%91%E9%82%BB/" rel="tag">K近邻</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LeetCode/" rel="tag">LeetCode</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Markdown/" rel="tag">Markdown</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mock/" rel="tag">Mock</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mockito/" rel="tag">Mockito</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OSS/" rel="tag">OSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Optional/" rel="tag">Optional</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pytorch/" rel="tag">Pytorch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSM/" rel="tag">SSM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringMVC/" rel="tag">SpringMVC</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Stream/" rel="tag">Stream</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TCP-IP/" rel="tag">TCP/IP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TensorFlow/" rel="tag">TensorFlow</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadLocal/" rel="tag">ThreadLocal</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TortoiseGit/" rel="tag">TortoiseGit</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TransmittableThreadLocal/" rel="tag">TransmittableThreadLocal</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Typora/" rel="tag">Typora</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/" rel="tag">Ubuntu</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="tag">lambda表达式</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/nvidia/" rel="tag">nvidia</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AA%E4%BA%BA%E7%BB%8F%E5%8E%86/" rel="tag">个人经历</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="tag">中间件</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2/" rel="tag">全文检索</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%B3%E7%AD%96%E6%A0%91/" rel="tag">决策树</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E7%B1%BB%E9%97%AE%E9%A2%98/" rel="tag">分类问题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98/" rel="tag">刷题</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%B7%E9%A2%98%E7%AC%94%E8%AE%B0/" rel="tag">刷题笔记</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8A%A0%E5%AF%86%E6%96%87%E7%AB%A0/" rel="tag">加密文章</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/" rel="tag">博客搭建</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%82%E8%80%83%E6%96%87%E4%BB%B6/" rel="tag">参考文件</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag">基础知识</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="tag">学习笔记</a><span class="tag-list-count">104</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">26</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6/" rel="tag">开发框架</a><span class="tag-list-count">31</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%88%90%E9%95%BF%E5%8F%B2/" rel="tag">成长史</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8C%81%E4%B9%85%E5%B1%82%E6%A1%86%E6%9E%B6/" rel="tag">持久层框架</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA/" rel="tag">支持向量机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E5%AD%A6%E6%8E%A8%E5%AF%BC/" rel="tag">数学推导</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%B8%85%E6%B4%97/" rel="tag">数据清洗</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A5%E5%B8%B8/" rel="tag">日常</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%97%A5%E5%BF%97%E6%A1%86%E6%9E%B6/" rel="tag">日志框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" rel="tag">机器学习</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E7%BB%93%E6%9E%84/" rel="tag">树结构</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/" rel="tag">测试工具</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag">深度学习</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%89%B9%E5%BE%81%E9%80%89%E6%8B%A9/" rel="tag">特征选择</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="tag">环境配置</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag">目标检测</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AE%97%E6%B3%95/" rel="tag">算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92/" rel="tag">线性回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%81%9A%E7%B1%BB/" rel="tag">聚类</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%A8%E7%A4%BA%E5%B1%82/" rel="tag">表示层</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E8%B7%AF/" rel="tag">计算机网路</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="tag">读书笔记</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B0%83%E7%94%A8%E9%93%BE%E7%9B%91%E6%8E%A7/" rel="tag">调用链监控</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%B4%9D%E5%8F%B6%E6%96%AF/" rel="tag">贝叶斯</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8/" rel="tag">软件使用</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92/" rel="tag">逻辑回归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E5%90%88%E7%B1%BB/" rel="tag">集合类</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9B%86%E6%88%90%E5%AD%A6%E4%B9%A0/" rel="tag">集成学习</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E7%BB%8F/" rel="tag">面经</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E7%AC%94%E8%AE%B0/" rel="tag">面试笔记</a><span class="tag-list-count">61</span></li></ul>
+                </canvas>
+            </div>
+        </div>
+      
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZhuCC</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">3.7m</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">55:34</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : '3it0tVBbppFeFBVa8QgB3vxM-gzGzoHsz',
+      appKey     : '9VtnMWSrhAtC1pSRaA4Rivx9',
+      placeholder: "请多多指教~",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"superSample":2,"width":150,"height":300,"position":"right","hOffset":0,"vOffset":-20},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body>
+</html>
